@@ -115,7 +115,7 @@ public class ProyectoSeguridadServidor {
                 
                 int Puzzle_N = randIntPuzzle();
 
-                out.println("SALTHASH" + " " + hashSaltNumber(usuarios., Puzzle_N) + " " + salt);
+                out.println("SALTHASH" + " " + hashSaltNumber(usuarios.get(index), Puzzle_N) + " " + salt);
 
                 // Accept messages from this client and broadcast them.
                 // Ignore other clients that cannot be broadcasted to.
