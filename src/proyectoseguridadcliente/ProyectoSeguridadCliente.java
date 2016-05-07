@@ -113,22 +113,23 @@ public class ProyectoSeguridadCliente {
                 textField.setEditable(true);
             } else if (line.startsWith("MESSAGE")) {
                 messageArea.append(line.substring(8) + "\n");
+            } else if (line.startsWith("REJECT")) {
+                JOptionPane.showInputDialog(
+                        frame, "Conexion Rechazada!", "Screen reject", JOptionPane.ERROR_MESSAGE);
+                frame.setVisible(false);
             }
         }
     }
-    
-    public Integer restoreSaltHash(String line){
-        
-        String [] separarHash= line.split(" "); 
+
+    public Integer restoreSaltHash(String line) {
+
+        String[] separarHash = line.split(" ");
         Integer num = 1;
-        
+
         num = num * separarHash[1].hashCode() - separarHash[2].hashCode();
-        
-        return num;    
+
+        return num;
     }
-    
-    
-    
 
     /**
      * Runs the client as an application with a closeable frame.
