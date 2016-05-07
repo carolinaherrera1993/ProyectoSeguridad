@@ -13,6 +13,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import org.apache.commons.codec.digest.DigestUtils;
 
@@ -23,6 +24,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 public class ProyectoSeguridadServidor {
 
     private static final int PORT = 9001;
+    private static HashMap<String, Usuario> usuarios;
 
     /**
      * The set of all names of clients in the chat room. Maintained so that we
@@ -41,6 +43,8 @@ public class ProyectoSeguridadServidor {
      * handler threads.
      */
     public static void main(String[] args) throws Exception {
+        usuarios= new HashMap<>();
+        leerArchivoUsuarios();
         System.out.println("The chat server is running.");
         ServerSocket listener = new ServerSocket(PORT);
         try {
@@ -51,6 +55,37 @@ public class ProyectoSeguridadServidor {
             listener.close();
         }
     }
+    
+    public static void leerArchivoUsuarios() {
+
+            BufferedReader br = null;
+     
+            try {
+
+                String sCurrentLine;
+                String []usuarioArray;
+
+                br = new BufferedReader(new FileReader("usuarios.txt"));
+
+                while ((sCurrentLine = br.readLine()) != null) {
+                    usuarioArray = sCurrentLine.split(","); 
+                    usuarios.put(usuarioArray[0], new Usuario(usuarioArray[0], usuarioArray[1], usuarioArray[2]));
+                    
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (br != null) {
+                        br.close();
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
+        }
 
     /**
      * A handler thread class. Handlers are spawned from the listening loop and
@@ -59,7 +94,7 @@ public class ProyectoSeguridadServidor {
      */
     private static class Handler extends Thread {
 
-        private ArrayList<Usuario> usuarios;
+       
         private String name;
         private Socket socket;
         private BufferedReader in;
@@ -73,8 +108,7 @@ public class ProyectoSeguridadServidor {
          */
         public Handler(Socket socket) {
             this.socket = socket;
-            usuarios = new ArrayList<>();
-            leerArchivoUsuarios();
+           
         }
 
         /**
@@ -168,36 +202,6 @@ public class ProyectoSeguridadServidor {
             String Salt_Puzzle_N = String.valueOf(Salt) + String.valueOf(Puzzle_N);
             String sha1password = DigestUtils.sha256Hex(Salt_Puzzle_N);
             return sha1password;
-        }
-
-        public void leerArchivoUsuarios() {
-
-            BufferedReader br = null;
-     
-            try {
-
-                String sCurrentLine;
-                String []usuarioArray;
-
-                br = new BufferedReader(new FileReader("usuarios.txt"));
-
-                while ((sCurrentLine = br.readLine()) != null) {
-                    usuarioArray = sCurrentLine.split(","); 
-                    usuarios.add(new Usuario(usuarioArray[0], usuarioArray[1], usuarioArray[2]));
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (br != null) {
-                        br.close();
-                    }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-
         }
 
     }
