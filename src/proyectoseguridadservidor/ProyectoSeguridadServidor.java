@@ -182,7 +182,7 @@ public class ProyectoSeguridadServidor {
                 br = new BufferedReader(new FileReader("usuarios.txt"));
 
                 while ((sCurrentLine = br.readLine()) != null) {
-                    usuarioArray = sCurrentLine.split(" "); 
+                    usuarioArray = sCurrentLine.split(","); 
                     usuarios.add(new Usuario(usuarioArray[0], usuarioArray[1], usuarioArray[2]));
                 }
 
