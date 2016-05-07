@@ -12,10 +12,10 @@ package proyectoseguridadservidor;
 public class Usuario {
     
     private String nombreUsuario;
-    private String salt; 
+    private Integer salt; 
     private String password; 
 
-    public Usuario(String nombreUsuario, String salt, String password) {
+    public Usuario(String nombreUsuario, Integer salt, String password) {
         this.nombreUsuario = nombreUsuario;
         this.salt = salt;
         this.password = password;
@@ -31,11 +31,11 @@ public class Usuario {
         this.nombreUsuario = nombreUsuario;
     }
 
-    public String getSalt() {
+    public Integer getSalt() {
         return salt;
     }
 
-    public void setSalt(String salt) {
+    public void setSalt(Integer salt) {
         this.salt = salt;
     }
 
