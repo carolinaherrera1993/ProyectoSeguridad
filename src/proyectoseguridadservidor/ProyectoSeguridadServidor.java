@@ -100,8 +100,6 @@ public class ProyectoSeguridadServidor {
         private Socket socket;
         private BufferedReader in;
         private PrintWriter out;
-        private static final String salt = "qwertyuioplkjhgfdsazxcvbnm";
-        private Integer number = 256;
 
         /**
          * Constructs a handler thread, squirreling away the socket. All the
@@ -150,7 +148,7 @@ public class ProyectoSeguridadServidor {
                 
                 int Puzzle_N = randIntPuzzle();
 
-                out.println("SALTHASH" + " " + hashSaltNumber(usuarios.get(name).getSalt(), Puzzle_N) + " " + salt);
+                out.println("SALTHASH" + " " + hashSaltNumber(usuarios.get(name).getSalt(), Puzzle_N) + " " + usuarios.get(name).getSalt());
 
                 // Accept messages from this client and broadcast them.
                 // Ignore other clients that cannot be broadcasted to.
