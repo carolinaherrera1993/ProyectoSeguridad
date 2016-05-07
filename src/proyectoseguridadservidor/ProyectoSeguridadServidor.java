@@ -14,6 +14,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Random;
 import org.apache.commons.codec.digest.DigestUtils;
 
 /**
@@ -109,12 +110,13 @@ public class ProyectoSeguridadServidor {
 
                     }
                     if (!names.contains(name)) {
-                        names.add(name);
                         break;
                     }
                 }
+                
+                int Puzzle_N = randIntPuzzle();
 
-                out.println("SALTHASH" + " " + hashSaltNumber(0, 0) + " " + salt);
+                out.println("SALTHASH" + " " + hashSaltNumber(, Puzzle_N) + " " + salt);
 
                 // Accept messages from this client and broadcast them.
                 // Ignore other clients that cannot be broadcasted to.
@@ -198,6 +200,14 @@ public class ProyectoSeguridadServidor {
                 }
             }
 
+        }
+        
+         public int randIntPuzzle() {
+            int min = 1;
+            int max = 256;
+            Random rand = new Random();
+            int randomNum = rand.nextInt((max - min) + 1) + min;
+            return randomNum;
         }
 
     }
