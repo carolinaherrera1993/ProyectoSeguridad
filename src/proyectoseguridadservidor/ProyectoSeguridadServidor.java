@@ -141,8 +141,12 @@ public class ProyectoSeguridadServidor {
                         System.out.println(texto[0] + " " + texto[1]);
 
                     }
-                    if (!names.contains(name)) {
+                    if (usuarios.containsKey(name)) {
                         break;
+                    }
+                    else{
+                        out.println("REJECT");
+                        socket.close();
                     }
                 }
                 
@@ -153,6 +157,23 @@ public class ProyectoSeguridadServidor {
                 // Accept messages from this client and broadcast them.
                 // Ignore other clients that cannot be broadcasted to.
                 while (true) {
+                    
+                    String ingreso = in.readLine();
+                    if (ingreso == null) {
+                        return;
+                    } else {
+
+                        String[] texto = ingreso.split(" ");
+                        int N_obtenida = Integer.valueOf(texto[0]);
+                        if(N_obtenida == Puzzle_N ){
+                            break;
+                        }
+                        else{
+                            out.println("REJECT");
+                            socket.close();
+                        }
+
+                    }
 
                     synchronized (names) {
                         if (!names.contains(name)) {
