@@ -69,12 +69,12 @@ public class ProyectoSeguridadServidor {
 
                 while ((sCurrentLine = br.readLine()) != null) {
                     usuarioArray = sCurrentLine.split(","); 
-                    usuarios.put(usuarioArray[0], new Usuario(usuarioArray[0], usuarioArray[1], usuarioArray[2]));
+                    usuarios.put(usuarioArray[0], new Usuario(usuarioArray[0], Integer.valueOf(usuarioArray[1]), usuarioArray[2]));
                     
                 }
 
             } catch (IOException e) {
-                e.printStackTrace();
+                e.printStackTrace(); 
             } finally {
                 try {
                     if (br != null) {
