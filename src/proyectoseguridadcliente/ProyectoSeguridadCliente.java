@@ -65,7 +65,7 @@ public class ProyectoSeguridadCliente {
     public int randInt() {
 
         int min = 1;
-        int max = 10000;
+        int max = 256;
         Random rand = new Random();
         int randomNum = rand.nextInt((max - min) + 1) + min;
         return randomNum;
@@ -105,7 +105,7 @@ public class ProyectoSeguridadCliente {
         while (true) {
             String line = in.readLine();
             if (line.startsWith("SUBMITNAME")) {
-                out.println(getName() + " " + (gDF * randInt()));
+                out.println(getName() + " " + (gDF * randInt())); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
             } else if (line.startsWith("SALTHASH")) {
                 Integer n = restoreSaltHash(line);
                 System.out.println(n);

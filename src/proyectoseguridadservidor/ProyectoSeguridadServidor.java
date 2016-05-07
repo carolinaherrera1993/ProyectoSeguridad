@@ -6,6 +6,7 @@
 package proyectoseguridadservidor;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -73,6 +74,7 @@ public class ProyectoSeguridadServidor {
         public Handler(Socket socket) {
             this.socket = socket;
             usuarios = new ArrayList<>();
+            leerArchivoUsuarios();
         }
 
         /**
@@ -167,14 +169,36 @@ public class ProyectoSeguridadServidor {
             String sha1password = DigestUtils.sha256Hex(Salt_Puzzle_N);
             return sha1password;
         }
-        
-        public void leerArchivoUsuarios(){
-        
-        
-        
-        
-        
-        }
-    }
 
+        public void leerArchivoUsuarios() {
+
+            BufferedReader br = null;
+     
+            try {
+
+                String sCurrentLine;
+                String []usuarioArray;
+
+                br = new BufferedReader(new FileReader("usuarios.txt"));
+
+                while ((sCurrentLine = br.readLine()) != null) {
+                    usuarioArray = sCurrentLine.split(" "); 
+                    usuarios.add(new Usuario(usuarioArray[0], usuarioArray[1], usuarioArray[2]));
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (br != null) {
+                        br.close();
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
+        }
+
+    }
 }
