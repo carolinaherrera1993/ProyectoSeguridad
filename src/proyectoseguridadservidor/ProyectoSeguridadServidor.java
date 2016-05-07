@@ -11,7 +11,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashSet;
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  *
@@ -56,6 +58,7 @@ public class ProyectoSeguridadServidor {
      */
     private static class Handler extends Thread {
 
+        private ArrayList<Usuario> usuarios;
         private String name;
         private Socket socket;
         private BufferedReader in;
@@ -69,6 +72,7 @@ public class ProyectoSeguridadServidor {
          */
         public Handler(Socket socket) {
             this.socket = socket;
+            usuarios = new ArrayList<>();
         }
 
         /**
@@ -102,15 +106,13 @@ public class ProyectoSeguridadServidor {
                         System.out.println(texto[0] + " " + texto[1]);
 
                     }
-                    synchronized (names) {
-                        if (!names.contains(name)) {
-                            names.add(name);
-                            break;
-                        }
+                    if (!names.contains(name)) {
+                        names.add(name);
+                        break;
                     }
                 }
 
-                out.println("SALTHASH" + " " + hashSaltNumber() + " " + salt);
+                out.println("SALTHASH" + " " + hashSaltNumber(0, 0) + " " + salt);
 
                 // Accept messages from this client and broadcast them.
                 // Ignore other clients that cannot be broadcasted to.
@@ -160,15 +162,18 @@ public class ProyectoSeguridadServidor {
             }
         }
 
-        public Integer hashSaltNumber() {
-
-            final int prime = number;
-            int result = 1;
-            // for (Char c : salt) {
-            result = result * prime + salt.hashCode();
-            //}
-            return result;
-
+        public String hashSaltNumber(int Salt, int Puzzle_N) {
+            String Salt_Puzzle_N = String.valueOf(Salt) + String.valueOf(Puzzle_N);
+            String sha1password = DigestUtils.sha256Hex(Salt_Puzzle_N);
+            return sha1password;
+        }
+        
+        public void leerArchivoUsuarios(){
+        
+        
+        
+        
+        
         }
     }
 
