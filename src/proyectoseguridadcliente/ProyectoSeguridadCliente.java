@@ -18,6 +18,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  *
@@ -125,10 +126,16 @@ public class ProyectoSeguridadCliente {
 
         String[] separarHash = line.split(" ");
         Integer num = 1;
+        
+        for(int x=0; x<256 ; x++){
+            String intento = separarHash[2] + String.valueOf(x);
+            if(separarHash[1].contentEquals(DigestUtils.sha256Hex(intento))){
+                return x;
+            }
+            
+        }
 
-        num = num * separarHash[1].hashCode() - separarHash[2].hashCode();
-
-        return num;
+        return -1;
     }
 
     /**
