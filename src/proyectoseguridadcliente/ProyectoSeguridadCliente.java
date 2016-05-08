@@ -113,8 +113,11 @@ public class ProyectoSeguridadCliente {
         // Process all messages from server, according to the protocol.
         while (true) {
             String line = in.readLine();
-            if (line.startsWith("SUBMITNAME")) {
-                numeroA = (int) ((pow(gDF, (Math.abs(Aleatorio_a.nextInt()) % 1000) + 1)) % nConstant);
+            if (line == null) {
+                        return;
+            }
+            else if (line.startsWith("SUBMITNAME")) {
+                numeroA = (int) ((pow(gDF, (Math.abs(Aleatorio_a.nextInt())%1000)+1))%nConstant);
                 out.println(getName() + " " + numeroA); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
             } else if (line.startsWith("SALTHASH")) {
                 numeroN = restoreSaltHash(line);
