@@ -181,7 +181,7 @@ public class ProyectoSeguridadServidor {
                     }
                 }
 
-                int numeroB = bResolver(Integer.valueOf(usuarios.get(name).getPassword()));
+                int numeroB = bResolver(usuarios.get(name).getPassword());
                 int numeroU = uResolver(numeroA, numeroB);
                 String hashUNString=hashMasUN(numeroU);
                 out.println("BRESOLVER" + " " + numeroB + " " + hashUNString);
@@ -266,10 +266,11 @@ public class ProyectoSeguridadServidor {
             return randomNum;
         }
 
-        public Integer bResolver(Integer v) {
+        public Integer bResolver(String v) {
             SecureRandom Aleatorio_b = new SecureRandom();
+            int numeroV=hex2decimal(v);
             Integer numeroB = 0;
-            numeroB = (3 * (v) + (int)(pow(gDF, (Math.abs(Aleatorio_b.nextInt())%1000)+1)))%nConstant;
+            numeroB = (3 * (numeroV) + (int)(pow(gDF, (Math.abs(Aleatorio_b.nextInt())%1000)+1)))%nConstant;
             return numeroB;
         }
 
