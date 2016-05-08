@@ -223,7 +223,7 @@ public class ProyectoSeguridadCliente {
     public int Calcular_X(int sal, String pass){
         String salt = String.valueOf(sal);
         String Hash = DigestUtils.sha1Hex(salt + pass);
-        int x = hex2decimal(Hash)%999;
+        int x = Math.abs(hex2decimal(Hash)%999);
         return x;
     }
     
