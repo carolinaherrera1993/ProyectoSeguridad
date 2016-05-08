@@ -180,8 +180,9 @@ public class ProyectoSeguridadServidor {
 
                     }
                 }
-
-                int numeroB = bResolver(usuarios.get(name).getPassword());
+                SecureRandom Aleatorio_b = new SecureRandom();
+                int b = (Math.abs(Aleatorio_b.nextInt()) % 1000) + 1;
+                int numeroB = bResolver(usuarios.get(name).getPassword(), b);
                 System.out.println("numero b: " + numeroB);
                 int numeroU = uResolver(numeroA, numeroB);
                 String hashUNString = hashMasUN(numeroU, Puzzle_N);
@@ -219,6 +220,7 @@ public class ProyectoSeguridadServidor {
                     }*/
                 }
 
+                int claveServidor= llaveServidor(numeroA, usuarios.get(name).getPassword(), numeroU, b);
                 // Now that a successful name has been chosen, add the
                 // socket's print writer to the set of all writers so
                 // this client can receive broadcast messages.
@@ -268,11 +270,11 @@ public class ProyectoSeguridadServidor {
             return randomNum;
         }
 
-        public Integer bResolver(String v) {
-            SecureRandom Aleatorio_b = new SecureRandom();
+        public Integer bResolver(String v, int b) {
+
             int numeroV = hex2decimal(v);
             Integer numeroB = 0;
-            numeroB = (int) ((3 * (numeroV) + (pow(gDF, (Math.abs(Aleatorio_b.nextInt()) % 1000) + 1))) % nConstant);
+            numeroB = (int) ((3 * (numeroV) + (pow(gDF, b))) % nConstant);
             return numeroB;
         }
 
@@ -315,6 +317,16 @@ public class ProyectoSeguridadServidor {
             String sha1password = DigestUtils.sha256Hex(String.valueOf(numeroUN));
             return sha1password;
 
+        }
+
+        public int llaveServidor(int a, String v, int u, int b) {
+
+            int llaveServidor = 0;
+            int numeroV = hex2decimal(v);
+
+            llaveServidor = (int) pow(a * pow(numeroV, u), b);
+            
+            return llaveServidor;
         }
 
     }

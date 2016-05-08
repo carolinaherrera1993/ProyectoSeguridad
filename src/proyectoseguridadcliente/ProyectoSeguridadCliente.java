@@ -114,10 +114,9 @@ public class ProyectoSeguridadCliente {
         while (true) {
             String line = in.readLine();
             if (line == null) {
-                        return;
-            }
-            else if (line.startsWith("SUBMITNAME")) {
-                numeroA = (int) ((pow(gDF, (Math.abs(Aleatorio_a.nextInt())%1000)+1))%nConstant);
+                return;
+            } else if (line.startsWith("SUBMITNAME")) {
+                numeroA = (int) ((pow(gDF, (Math.abs(Aleatorio_a.nextInt()) % 1000) + 1)) % nConstant);
                 out.println(getName() + " " + numeroA); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
             } else if (line.startsWith("SALTHASH")) {
                 numeroN = restoreSaltHash(line);
@@ -193,17 +192,16 @@ public class ProyectoSeguridadCliente {
     }
 
     public String hashMasUN(int u, int n) {
-        
-        
-        int numeroUN = u+n;
+
+        int numeroUN = u + n;
         String sha1password = DigestUtils.sha256Hex(String.valueOf(numeroUN));
         return sha1password;
 
     }
 
     public String hashMenosUN(int u, int n) {
-        
-        int numeroUN = u-n;
+
+        int numeroUN = u - n;
         String sha1password = DigestUtils.sha256Hex(String.valueOf(numeroUN));
         return sha1password;
 
