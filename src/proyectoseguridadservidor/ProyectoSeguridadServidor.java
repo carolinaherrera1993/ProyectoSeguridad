@@ -271,7 +271,7 @@ public class ProyectoSeguridadServidor {
             SecureRandom Aleatorio_b = new SecureRandom();
             int numeroV=hex2decimal(v);
             Integer numeroB = 0;
-            numeroB = (3 * (numeroV) + (int)(pow(gDF, (Math.abs(Aleatorio_b.nextInt())%1000)+1)))%nConstant;
+            numeroB = (int)((3 * (numeroV) + (pow(gDF, (Math.abs(Aleatorio_b.nextInt())%1000)+1)))%nConstant);
             return numeroB;
         }
 
