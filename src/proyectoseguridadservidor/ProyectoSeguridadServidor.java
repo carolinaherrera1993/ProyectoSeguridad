@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import static java.lang.Math.pow;
+import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.SecureRandom;
@@ -220,7 +221,8 @@ public class ProyectoSeguridadServidor {
                     }*/
                 }
 
-                int claveServidor= llaveServidor(numeroA, usuarios.get(name).getPassword(), numeroU, b);
+               String claveServidor= llaveServidor(numeroA, usuarios.get(name).getPassword(), numeroU, b);
+                System.out.println("clave Servidor: "+claveServidor);
                 // Now that a successful name has been chosen, add the
                 // socket's print writer to the set of all writers so
                 // this client can receive broadcast messages.
@@ -272,7 +274,8 @@ public class ProyectoSeguridadServidor {
 
         public Integer bResolver(String v, int b) {
 
-            int numeroV = hex2decimal(v);
+           // int numeroV = hex2decimal(v);
+            int numeroV = Integer.valueOf(v); 
             Integer numeroB = 0;
             numeroB = (int) ((3 * (numeroV) + (pow(gDF, b))) % nConstant);
             return numeroB;
@@ -283,10 +286,11 @@ public class ProyectoSeguridadServidor {
             Integer numeroU = 0;
 
             int u = a + b;
+            
             String sha1password = DigestUtils.sha256Hex(String.valueOf(u));
 
-            numeroU = hex2decimal(sha1password);
-            numeroU = numeroU % 3;
+            numeroU = Math.abs(hex2decimal(sha1password));
+            numeroU = numeroU % 1000;
 
             return numeroU;
         }
@@ -319,13 +323,19 @@ public class ProyectoSeguridadServidor {
 
         }
 
-        public int llaveServidor(int a, String v, int u, int b) {
+        public String llaveServidor(Integer a, String v, int u, int b) {
 
-            int llaveServidor = 0;
-            int numeroV = hex2decimal(v);
-
-            llaveServidor = (int) pow(a * pow(numeroV, u), b);
+            String llaveServidor;
+            BigInteger numeroV = new BigInteger(v);
             
+            numeroV = numeroV.pow(u);
+            numeroV = numeroV.multiply(new BigInteger(String.valueOf(a)));
+            numeroV = numeroV.pow(b);
+            
+                     
+            llaveServidor= DigestUtils.sha256Hex(String.valueOf(numeroV));
+            
+                       
             return llaveServidor;
         }
 

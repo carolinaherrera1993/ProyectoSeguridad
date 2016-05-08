@@ -151,6 +151,7 @@ public class ProyectoSeguridadCliente {
                 out.println(hashNumeroUMenos);
                 int x = Calcular_X(salt, pass);
                 int compartido = Generar_Secreto(numeroB, x, a, numeroU);
+                System.out.println("clave cliente: "+compartido);
             } else if (line.startsWith("NAMEACCEPTED")) {
                 textField.setEditable(true);
             } else if (line.startsWith("MESSAGE")) {
@@ -186,7 +187,7 @@ public class ProyectoSeguridadCliente {
         int u = a + b;
         String sha1password = DigestUtils.sha256Hex(String.valueOf(u));
 
-        numeroU = hex2decimal(sha1password);
+        numeroU = Math.abs(hex2decimal(sha1password));
         numeroU = numeroU % 3;
 
         return numeroU;
