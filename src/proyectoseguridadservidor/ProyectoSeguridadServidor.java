@@ -13,6 +13,7 @@ import java.io.PrintWriter;
 import static java.lang.Math.pow;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,7 +45,7 @@ public class ProyectoSeguridadServidor {
     private static HashSet<PrintWriter> writers = new HashSet<PrintWriter>();
 
     /**
-     * The appplication main method, which just listens on a port and spawns
+     * The application main method, which just listens on a port and spawns
      * handler threads.
      */
     public static void main(String[] args) throws Exception {
@@ -266,9 +267,9 @@ public class ProyectoSeguridadServidor {
         }
 
         public Integer bResolver(Integer v) {
-
+            SecureRandom Aleatorio_b = new SecureRandom();
             Integer numeroB = 0;
-            numeroB = (3 * (v) + (pow(gDF, (Aleatorio_a.nextInt()%1000)+1)))%nConstant;
+            numeroB = (3 * (v) + (pow(gDF, (Aleatorio_b.nextInt()%1000)+1)))%nConstant;
             return numeroB;
         }
 
