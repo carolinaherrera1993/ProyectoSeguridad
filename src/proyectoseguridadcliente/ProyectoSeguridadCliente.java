@@ -152,6 +152,7 @@ public class ProyectoSeguridadCliente {
                 out.println(hashNumeroUMenos);
                 int x = Calcular_X(salt, pass);
                 String compartido = Generar_Secreto(numeroB, x, a, numeroU);
+                System.out.println("llave cliente: " + compartido);
             } else if (line.startsWith("NAMEACCEPTED")) {
                 textField.setEditable(true);
             } else if (line.startsWith("MESSAGE")) {
