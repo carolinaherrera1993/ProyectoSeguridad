@@ -123,7 +123,7 @@ public class ProyectoSeguridadServidor {
                 in = new BufferedReader(new InputStreamReader(
                         socket.getInputStream()));
                 out = new PrintWriter(socket.getOutputStream(), true);
-
+                int numeroA;
                 // Request a name from this client.  Keep requesting until
                 // a name is submitted that is not already used.  Note that
                 // checking for the existence of a name and adding the name
@@ -138,6 +138,7 @@ public class ProyectoSeguridadServidor {
 
                         String[] texto = ingreso.split(" ");
                         name = texto[0];
+                        numeroA = Integer.valueOf(texto[1]);
                         System.out.println(texto[0] + " " + texto[1]);
 
                     }
@@ -176,7 +177,11 @@ public class ProyectoSeguridadServidor {
                     }
                 }
 
-                out.println("BRESOLVER" + " " + bResolver(Integer.valueOf(usuarios.get(name).getPassword())));
+                int numeroB = bResolver(Integer.valueOf(usuarios.get(name).getPassword()));
+                int numeroU = uResolver(numeroA, numeroB);
+                String hashUNString=hashMasUN(numeroU);
+                out.println("BRESOLVER" + " " + numeroB + " " + hashUNString);
+                System.out.println(numeroU);
 
                 // Accept messages from this client and broadcast them.
                 // Ignore other clients that cannot be broadcasted to.
@@ -188,9 +193,10 @@ public class ProyectoSeguridadServidor {
                     } else {
 
                         String[] texto = ingreso.split(" ");
-                        int N_obtenida = Integer.valueOf(texto[0]);
+                        String hashUObtenida = texto[0];
+                        String hashUCreada = hashMenosUN(numeroU);
 
-                        if (N_obtenida == Puzzle_N) {
+                        if (hashUCreada.equals(hashUObtenida)) {
                             break;
                         } else {
                             out.println("REJECT");
@@ -261,6 +267,46 @@ public class ProyectoSeguridadServidor {
             Integer numeroB = 0;
             numeroB = (3 * (v) + (gDF ^ (randIntPuzzle())) % nConstant);
             return numeroB;
+        }
+
+        public Integer uResolver(int a, int b) {
+
+            Integer numeroU = 0;
+
+            int u = a + b;
+            String sha1password = DigestUtils.sha256Hex(String.valueOf(u));
+
+            numeroU = hex2decimal(sha1password);
+            numeroU = numeroU % 3;
+
+            return numeroU;
+        }
+
+        public int hex2decimal(String s) {
+
+            String digits = "0123456789ABCDEF";
+            s = s.toUpperCase();
+            int val = 0;
+            for (int i = 0; i < s.length(); i++) {
+                char c = s.charAt(i);
+                int d = digits.indexOf(c);
+                val = 16 * val + d;
+            }
+            return val;
+        }
+
+        public String hashMasUN(int u) {
+            String numeroUN = String.valueOf(u) + String.valueOf(nConstant);
+            String sha1password = DigestUtils.sha256Hex(numeroUN);
+            return sha1password;
+
+        }
+        
+        public String hashMenosUN(int u) {
+            String numeroUN = String.valueOf(u) + String.valueOf(nConstant);
+            String sha1password = DigestUtils.sha256Hex(numeroUN);
+            return sha1password;
+
         }
 
     }

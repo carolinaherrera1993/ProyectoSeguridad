@@ -102,17 +102,27 @@ public class ProyectoSeguridadCliente {
         in = new BufferedReader(new InputStreamReader(
                 socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
-
+        int numeroA = 0;
+        int numeroB;
+        int numeroU;
+        int numeroN=0;
         // Process all messages from server, according to the protocol.
         while (true) {
             String line = in.readLine();
             if (line.startsWith("SUBMITNAME")) {
-                out.println(getName() + " " + (gDF * randInt())); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
+                numeroA = (gDF * randInt());
+                out.println(getName() + " " + numeroA); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
             } else if (line.startsWith("SALTHASH")) {
-                Integer n = restoreSaltHash(line);
-                out.println(n);
-                System.out.println(n);
-            }else if(line.startsWith("BRESOLVER")){        
+                numeroN= restoreSaltHash(line);
+                out.println(numeroN);
+                System.out.println(numeroN);
+            } else if (line.startsWith("BRESOLVER")) {
+                String[] ing = line.split(" ");
+                numeroB = Integer.valueOf(ing[1]);
+                numeroU=uResolver(numeroA, numeroB);
+                System.out.println(numeroU);
+                String hashNumeroUMenos=hashMenosUN(numeroU, numeroN);
+                
                 
             } else if (line.startsWith("NAMEACCEPTED")) {
                 textField.setEditable(true);
@@ -130,17 +140,58 @@ public class ProyectoSeguridadCliente {
 
         String[] separarHash = line.split(" ");
         Integer num = 1;
-        
-        for(int x=0; x<256 ; x++){
+
+        for (int x = 0; x < 256; x++) {
             String intento = separarHash[2] + String.valueOf(x);
-            if(separarHash[1].contentEquals(DigestUtils.sha256Hex(intento))){
+            if (separarHash[1].contentEquals(DigestUtils.sha256Hex(intento))) {
                 return x;
             }
-            
+
         }
 
         return -1;
     }
+
+    public Integer uResolver(int a, int b) {
+
+        Integer numeroU = 0;
+
+        int u = a + b;
+        String sha1password = DigestUtils.sha256Hex(String.valueOf(u));
+
+        numeroU = hex2decimal(sha1password);
+        numeroU = numeroU % 3;
+
+        return numeroU;
+    }
+
+    public int hex2decimal(String s) {
+
+        String digits = "0123456789ABCDEF";
+        s = s.toUpperCase();
+        int val = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            int d = digits.indexOf(c);
+            val = 16 * val + d;
+        }
+        return val;
+    }
+    
+    public String hashMasUN(int u, int n) {
+            String numeroUN = String.valueOf(u) + String.valueOf(n);
+            String sha1password = DigestUtils.sha256Hex(numeroUN);
+            return sha1password;
+
+        }
+        
+        public String hashMenosUN(int u, int n) {
+            String numeroUN = String.valueOf(u) + String.valueOf(n);
+            String sha1password = DigestUtils.sha256Hex(numeroUN);
+            return sha1password;
+
+        }
+
 
     /**
      * Runs the client as an application with a closeable frame.
