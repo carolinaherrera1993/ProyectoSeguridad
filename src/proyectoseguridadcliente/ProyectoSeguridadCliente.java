@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import static java.lang.Math.pow;
+import java.math.BigInteger;
 import java.net.Socket;
 import java.security.SecureRandom;
 import java.util.Random;
@@ -150,8 +151,7 @@ public class ProyectoSeguridadCliente {
                 }
                 out.println(hashNumeroUMenos);
                 int x = Calcular_X(salt, pass);
-                int compartido = Generar_Secreto(numeroB, x, a, numeroU);
-                System.out.println("clave cliente: "+compartido);
+                String compartido = Generar_Secreto(numeroB, x, a, numeroU);
             } else if (line.startsWith("NAMEACCEPTED")) {
                 textField.setEditable(true);
             } else if (line.startsWith("MESSAGE")) {
@@ -188,7 +188,7 @@ public class ProyectoSeguridadCliente {
         String sha1password = DigestUtils.sha256Hex(String.valueOf(u));
 
         numeroU = Math.abs(hex2decimal(sha1password));
-        numeroU = numeroU % 3;
+        numeroU = numeroU % 1000;
 
         return numeroU;
     }
@@ -224,13 +224,19 @@ public class ProyectoSeguridadCliente {
     public int Calcular_X(int sal, String pass){
         String salt = String.valueOf(sal);
         String Hash = DigestUtils.sha1Hex(salt + pass);
-        int x = Math.abs(hex2decimal(Hash)%999);
+        int x = Math.abs(hex2decimal(Hash)%1000);
         return x;
     }
     
-    public int Generar_Secreto(int B, int x, int a, int u){
-        double resultado = pow((B - 3 * pow(gDF, x)), a+u*x);
-        return (int) resultado;
+    public String Generar_Secreto(int B, int x, int a, int u){
+        BigInteger primero = new BigInteger(String.valueOf(gDF));
+        primero = primero.pow(x);
+        primero = primero.multiply(new BigInteger("3"));
+        BigInteger nominador = new BigInteger(String.valueOf(B));
+        primero = nominador.subtract(primero);
+        int res_par = a+ u*x;
+        BigInteger result = primero.pow(res_par);
+        return DigestUtils.sha1Hex(result.toString());
     }
 
     /**
