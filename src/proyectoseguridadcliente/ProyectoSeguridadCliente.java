@@ -32,7 +32,7 @@ public class ProyectoSeguridadCliente {
     JFrame frame = new JFrame("Chatter");
     JTextField textField = new JTextField(40);
     JTextArea messageArea = new JTextArea(8, 40);
-    public static final int gDF = 52;
+    public static final int gDF = 2;
 
     /**
      * Constructs the client by laying out the GUI and registering a listener
@@ -110,7 +110,10 @@ public class ProyectoSeguridadCliente {
                 out.println(getName() + " " + (gDF * randInt())); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
             } else if (line.startsWith("SALTHASH")) {
                 Integer n = restoreSaltHash(line);
+                out.println(n);
                 System.out.println(n);
+            }else if(line.startsWith("BRESOLVER")){        
+                
             } else if (line.startsWith("NAMEACCEPTED")) {
                 textField.setEditable(true);
             } else if (line.startsWith("MESSAGE")) {

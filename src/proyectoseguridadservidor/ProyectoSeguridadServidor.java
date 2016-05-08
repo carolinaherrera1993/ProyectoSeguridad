@@ -26,7 +26,8 @@ public class ProyectoSeguridadServidor {
 
     private static final int PORT = 9001;
     private static HashMap<String, Usuario> usuarios;
-
+    public static final int gDF = 2;
+    public static final int nConstant = 53;
     /**
      * The set of all names of clients in the chat room. Maintained so that we
      * can check that new clients are not registering name already in use.
@@ -44,7 +45,7 @@ public class ProyectoSeguridadServidor {
      * handler threads.
      */
     public static void main(String[] args) throws Exception {
-        usuarios= new HashMap<>();
+        usuarios = new HashMap<>();
         leerArchivoUsuarios();
         System.out.println("The chat server is running.");
         ServerSocket listener = new ServerSocket(PORT);
@@ -56,37 +57,37 @@ public class ProyectoSeguridadServidor {
             listener.close();
         }
     }
-    
+
     public static void leerArchivoUsuarios() {
 
-            BufferedReader br = null;
-     
-            try {
+        BufferedReader br = null;
 
-                String sCurrentLine;
-                String []usuarioArray;
+        try {
 
-                br = new BufferedReader(new FileReader("usuarios.txt"));
+            String sCurrentLine;
+            String[] usuarioArray;
 
-                while ((sCurrentLine = br.readLine()) != null) {
-                    usuarioArray = sCurrentLine.split(","); 
-                    usuarios.put(usuarioArray[0], new Usuario(usuarioArray[0], Integer.valueOf(usuarioArray[1]), usuarioArray[2]));
-                    
-                }
+            br = new BufferedReader(new FileReader("usuarios.txt"));
 
-            } catch (IOException e) {
-                e.printStackTrace(); 
-            } finally {
-                try {
-                    if (br != null) {
-                        br.close();
-                    }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
+            while ((sCurrentLine = br.readLine()) != null) {
+                usuarioArray = sCurrentLine.split(",");
+                usuarios.put(usuarioArray[0], new Usuario(usuarioArray[0], Integer.valueOf(usuarioArray[1]), usuarioArray[2]));
+
             }
 
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (br != null) {
+                    br.close();
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
+
+    }
 
     /**
      * A handler thread class. Handlers are spawned from the listening loop and
@@ -95,7 +96,6 @@ public class ProyectoSeguridadServidor {
      */
     private static class Handler extends Thread {
 
-       
         private String name;
         private Socket socket;
         private BufferedReader in;
@@ -107,7 +107,7 @@ public class ProyectoSeguridadServidor {
          */
         public Handler(Socket socket) {
             this.socket = socket;
-           
+
         }
 
         /**
@@ -143,13 +143,12 @@ public class ProyectoSeguridadServidor {
                     }
                     if (usuarios.containsKey(name)) {
                         break;
-                    }
-                    else{
+                    } else {
                         out.println("REJECT");
                         socket.close();
                     }
                 }
-                
+
                 int Puzzle_N = randIntPuzzle();
 
                 out.println("SALTHASH" + " " + hashSaltNumber(usuarios.get(name).getSalt(), Puzzle_N) + " " + usuarios.get(name).getSalt());
@@ -157,7 +156,7 @@ public class ProyectoSeguridadServidor {
                 // Accept messages from this client and broadcast them.
                 // Ignore other clients that cannot be broadcasted to.
                 while (true) {
-                    
+
                     String ingreso = in.readLine();
                     if (ingreso == null) {
                         return;
@@ -165,23 +164,47 @@ public class ProyectoSeguridadServidor {
 
                         String[] texto = ingreso.split(" ");
                         int N_obtenida = Integer.valueOf(texto[0]);
-                        if(N_obtenida == Puzzle_N ){
+
+                        if (N_obtenida == Puzzle_N) {
+                            System.out.println("N Correcto");
                             break;
+                        } else {
+                            out.println("REJECT");
+                            socket.close();
                         }
-                        else{
+
+                    }
+                }
+
+                out.println("BRESOLVER" + " " + bResolver(Integer.valueOf(usuarios.get(name).getPassword())));
+
+                // Accept messages from this client and broadcast them.
+                // Ignore other clients that cannot be broadcasted to.
+                while (true) {
+
+                    String ingreso = in.readLine();
+                    if (ingreso == null) {
+                        return;
+                    } else {
+
+                        String[] texto = ingreso.split(" ");
+                        int N_obtenida = Integer.valueOf(texto[0]);
+
+                        if (N_obtenida == Puzzle_N) {
+                            break;
+                        } else {
                             out.println("REJECT");
                             socket.close();
                         }
 
                     }
 
-                    synchronized (names) {
+                    /* synchronized (names) {
                         if (!names.contains(name)) {
                             names.add(name);
                             break;
                         }
-                    }
-
+                    }*/
                 }
 
                 // Now that a successful name has been chosen, add the
@@ -224,13 +247,20 @@ public class ProyectoSeguridadServidor {
             String sha1password = DigestUtils.sha256Hex(Salt_Puzzle_N);
             return sha1password;
         }
-        
-         public int randIntPuzzle() {
+
+        public int randIntPuzzle() {
             int min = 1;
             int max = 256;
             Random rand = new Random();
             int randomNum = rand.nextInt((max - min) + 1) + min;
             return randomNum;
+        }
+
+        public Integer bResolver(Integer v) {
+
+            Integer numeroB = 0;
+            numeroB = (3 * (v) + (gDF ^ (randIntPuzzle())) % nConstant);
+            return numeroB;
         }
 
     }
