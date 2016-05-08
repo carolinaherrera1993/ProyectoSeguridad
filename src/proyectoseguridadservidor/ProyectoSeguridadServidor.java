@@ -269,7 +269,7 @@ public class ProyectoSeguridadServidor {
         public Integer bResolver(Integer v) {
             SecureRandom Aleatorio_b = new SecureRandom();
             Integer numeroB = 0;
-            numeroB = (3 * (v) + (pow(gDF, (Aleatorio_b.nextInt()%1000)+1)))%nConstant;
+            numeroB = (3 * (v) + (int)(pow(gDF, (Aleatorio_b.nextInt()%1000)+1)))%nConstant;
             return numeroB;
         }
 
