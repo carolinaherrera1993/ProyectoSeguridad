@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import static java.lang.Math.pow;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -17,6 +18,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 import org.apache.commons.codec.digest.DigestUtils;
+import static proyectoseguridadcliente.ProyectoSeguridadCliente.gDF;
+import static proyectoseguridadcliente.ProyectoSeguridadCliente.nConstant;
 
 /**
  *
@@ -265,7 +268,7 @@ public class ProyectoSeguridadServidor {
         public Integer bResolver(Integer v) {
 
             Integer numeroB = 0;
-            numeroB = (3 * (v) + (gDF ^ (randIntPuzzle())) % nConstant);
+            numeroB = (3 * (v) + (pow(gDF, (Aleatorio_a.nextInt()%1000)+1)))%nConstant;
             return numeroB;
         }
 

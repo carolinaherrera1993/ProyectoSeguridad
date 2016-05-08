@@ -12,7 +12,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import static java.lang.Math.pow;
 import java.net.Socket;
+import java.security.SecureRandom;
 import java.util.Random;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -33,6 +35,7 @@ public class ProyectoSeguridadCliente {
     JTextField textField = new JTextField(40);
     JTextArea messageArea = new JTextArea(8, 40);
     public static final int gDF = 2;
+    public static final int nConstant = 53;
 
     /**
      * Constructs the client by laying out the GUI and registering a listener
@@ -96,6 +99,7 @@ public class ProyectoSeguridadCliente {
      */
     private void run() throws IOException {
 
+        SecureRandom Aleatorio_a = new SecureRandom();
         // Make connection and initialize streams
         String serverAddress = "localhost";
         Socket socket = new Socket(serverAddress, 9001);
@@ -110,7 +114,7 @@ public class ProyectoSeguridadCliente {
         while (true) {
             String line = in.readLine();
             if (line.startsWith("SUBMITNAME")) {
-                numeroA = (gDF * randInt());
+                numeroA = (int) ((pow(gDF, (Aleatorio_a.nextInt()%1000)+1))%nConstant);
                 out.println(getName() + " " + numeroA); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
             } else if (line.startsWith("SALTHASH")) {
                 numeroN= restoreSaltHash(line);
