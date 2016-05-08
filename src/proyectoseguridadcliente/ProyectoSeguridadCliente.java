@@ -114,7 +114,7 @@ public class ProyectoSeguridadCliente {
         while (true) {
             String line = in.readLine();
             if (line.startsWith("SUBMITNAME")) {
-                numeroA = (int) ((pow(gDF, (Aleatorio_a.nextInt()%1000)+1))%nConstant);
+                numeroA = (int) ((pow(gDF, (Math.abs(Aleatorio_a.nextInt())%1000)+1))%nConstant);
                 out.println(getName() + " " + numeroA); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
             } else if (line.startsWith("SALTHASH")) {
                 numeroN= restoreSaltHash(line);
