@@ -126,11 +126,13 @@ public class ProyectoSeguridadCliente {
             } else if (line.startsWith("BRESOLVER")) {
                 String[] ing = line.split(" ");
                 numeroB = Integer.valueOf(ing[1]);
+                System.out.println("numero B: " + numeroB);
                 numeroU = uResolver(numeroA, numeroB);
-                System.out.println(numeroU);
+                System.out.println("numero U: " + numeroU);
                 String hashNumeroUMenos = hashMenosUN(numeroU, numeroN);
                 String hashNumeroUMas = hashMasUN(numeroU, numeroN);
-                if (hashNumeroUMas.equals(ing[2])) {
+                System.out.println("hashUNMAS: " + hashNumeroUMas);
+                if (!hashNumeroUMas.equals(ing[2])) {
                     JOptionPane.showMessageDialog(
                             frame, "Conexion Rechazada!", "Screen reject", JOptionPane.ERROR_MESSAGE);
                     frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
@@ -191,15 +193,18 @@ public class ProyectoSeguridadCliente {
     }
 
     public String hashMasUN(int u, int n) {
-        String numeroUN = String.valueOf(u) + String.valueOf(n);
-        String sha1password = DigestUtils.sha256Hex(numeroUN);
+        
+        
+        int numeroUN = u+n;
+        String sha1password = DigestUtils.sha256Hex(String.valueOf(numeroUN));
         return sha1password;
 
     }
 
     public String hashMenosUN(int u, int n) {
-        String numeroUN = String.valueOf(u) + String.valueOf(n);
-        String sha1password = DigestUtils.sha256Hex(numeroUN);
+        
+        int numeroUN = u-n;
+        String sha1password = DigestUtils.sha256Hex(String.valueOf(numeroUN));
         return sha1password;
 
     }

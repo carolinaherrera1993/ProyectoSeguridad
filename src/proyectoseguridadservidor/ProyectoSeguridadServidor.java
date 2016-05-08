@@ -182,11 +182,12 @@ public class ProyectoSeguridadServidor {
                 }
 
                 int numeroB = bResolver(usuarios.get(name).getPassword());
+                System.out.println("numero b: " + numeroB);
                 int numeroU = uResolver(numeroA, numeroB);
-                String hashUNString=hashMasUN(numeroU);
+                String hashUNString = hashMasUN(numeroU, Puzzle_N);
                 out.println("BRESOLVER" + " " + numeroB + " " + hashUNString);
-                System.out.println(numeroU);
-
+                System.out.println("numero U: " + numeroU);
+                System.out.println("hashUNMAs: " + hashUNString);
                 // Accept messages from this client and broadcast them.
                 // Ignore other clients that cannot be broadcasted to.
                 while (true) {
@@ -198,7 +199,7 @@ public class ProyectoSeguridadServidor {
 
                         String[] texto = ingreso.split(" ");
                         String hashUObtenida = texto[0];
-                        String hashUCreada = hashMenosUN(numeroU);
+                        String hashUCreada = hashMenosUN(numeroU, Puzzle_N);
 
                         if (hashUCreada.equals(hashUObtenida)) {
                             System.out.println("hashes iguales");
@@ -269,9 +270,9 @@ public class ProyectoSeguridadServidor {
 
         public Integer bResolver(String v) {
             SecureRandom Aleatorio_b = new SecureRandom();
-            int numeroV=hex2decimal(v);
+            int numeroV = hex2decimal(v);
             Integer numeroB = 0;
-            numeroB = (int)((3 * (numeroV) + (pow(gDF, (Math.abs(Aleatorio_b.nextInt())%1000)+1)))%nConstant);
+            numeroB = (int) ((3 * (numeroV) + (pow(gDF, (Math.abs(Aleatorio_b.nextInt()) % 1000) + 1))) % nConstant);
             return numeroB;
         }
 
@@ -301,16 +302,17 @@ public class ProyectoSeguridadServidor {
             return val;
         }
 
-        public String hashMasUN(int u) {
-            String numeroUN = String.valueOf(u) + String.valueOf(nConstant);
-            String sha1password = DigestUtils.sha256Hex(numeroUN);
+        public String hashMasUN(int u, int n) {
+
+            int numeroUN = u + n;
+            String sha1password = DigestUtils.sha256Hex(String.valueOf(numeroUN));
             return sha1password;
 
         }
-        
-        public String hashMenosUN(int u) {
-            String numeroUN = String.valueOf(u) + String.valueOf(nConstant);
-            String sha1password = DigestUtils.sha256Hex(numeroUN);
+
+        public String hashMenosUN(int u, int n) {
+            int numeroUN = u - n;
+            String sha1password = DigestUtils.sha256Hex(String.valueOf(numeroUN));
             return sha1password;
 
         }
