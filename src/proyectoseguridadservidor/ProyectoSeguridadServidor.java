@@ -201,6 +201,7 @@ public class ProyectoSeguridadServidor {
                         String hashUCreada = hashMenosUN(numeroU);
 
                         if (hashUCreada.equals(hashUObtenida)) {
+                            System.out.println("hashes iguales");
                             break;
                         } else {
                             out.println("REJECT");

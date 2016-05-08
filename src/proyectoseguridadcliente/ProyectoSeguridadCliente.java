@@ -109,25 +109,30 @@ public class ProyectoSeguridadCliente {
         int numeroA = 0;
         int numeroB;
         int numeroU;
-        int numeroN=0;
+        int numeroN = 0;
         // Process all messages from server, according to the protocol.
         while (true) {
             String line = in.readLine();
             if (line.startsWith("SUBMITNAME")) {
-                numeroA = (int) ((pow(gDF, (Math.abs(Aleatorio_a.nextInt())%1000)+1))%nConstant);
+                numeroA = (int) ((pow(gDF, (Math.abs(Aleatorio_a.nextInt()) % 1000) + 1)) % nConstant);
                 out.println(getName() + " " + numeroA); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
             } else if (line.startsWith("SALTHASH")) {
-                numeroN= restoreSaltHash(line);
+                numeroN = restoreSaltHash(line);
                 out.println(numeroN);
                 System.out.println(numeroN);
             } else if (line.startsWith("BRESOLVER")) {
                 String[] ing = line.split(" ");
                 numeroB = Integer.valueOf(ing[1]);
-                numeroU=uResolver(numeroA, numeroB);
+                numeroU = uResolver(numeroA, numeroB);
                 System.out.println(numeroU);
-                String hashNumeroUMenos=hashMenosUN(numeroU, numeroN);
-                
-                
+                String hashNumeroUMenos = hashMenosUN(numeroU, numeroN);
+                String hashNumeroUMas = hashMasUN(numeroU, numeroN);
+                if (hashNumeroUMas.equals(ing[2])) {
+                    JOptionPane.showMessageDialog(
+                            frame, "Conexion Rechazada!", "Screen reject", JOptionPane.ERROR_MESSAGE);
+                    frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+                }
+                out.println(hashNumeroUMenos);
             } else if (line.startsWith("NAMEACCEPTED")) {
                 textField.setEditable(true);
             } else if (line.startsWith("MESSAGE")) {
@@ -181,21 +186,20 @@ public class ProyectoSeguridadCliente {
         }
         return val;
     }
-    
+
     public String hashMasUN(int u, int n) {
-            String numeroUN = String.valueOf(u) + String.valueOf(n);
-            String sha1password = DigestUtils.sha256Hex(numeroUN);
-            return sha1password;
+        String numeroUN = String.valueOf(u) + String.valueOf(n);
+        String sha1password = DigestUtils.sha256Hex(numeroUN);
+        return sha1password;
 
-        }
-        
-        public String hashMenosUN(int u, int n) {
-            String numeroUN = String.valueOf(u) + String.valueOf(n);
-            String sha1password = DigestUtils.sha256Hex(numeroUN);
-            return sha1password;
+    }
 
-        }
+    public String hashMenosUN(int u, int n) {
+        String numeroUN = String.valueOf(u) + String.valueOf(n);
+        String sha1password = DigestUtils.sha256Hex(numeroUN);
+        return sha1password;
 
+    }
 
     /**
      * Runs the client as an application with a closeable frame.
