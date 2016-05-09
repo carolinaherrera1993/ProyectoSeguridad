@@ -233,7 +233,7 @@ public class ProyectoSeguridadCliente {
     public String Generar_Secreto(int B, int x, int a, int u){
         BigInteger primero = new BigInteger(String.valueOf(gDF));
         primero = primero.pow(x);
-        //primero = primero.multiply(new BigInteger("3"));
+        primero = primero.multiply(new BigInteger("3"));
         BigInteger nominador = new BigInteger(String.valueOf(B));
         primero = nominador.subtract(primero);
         int res_par = a + (u*x);

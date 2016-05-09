@@ -281,6 +281,7 @@ public class ProyectoSeguridadServidor {
 
             // int numeroV = hex2decimal(v);
             BigInteger numeroV = new BigInteger (v); //Integer.valueOf(v);
+            numeroV= numeroV.multiply(new BigInteger(String.valueOf("3")));
             BigInteger numeroB = new BigInteger(String.valueOf(gDF));
             numeroB= numeroB.pow(b); 
             numeroB=numeroB.add(numeroV); 
