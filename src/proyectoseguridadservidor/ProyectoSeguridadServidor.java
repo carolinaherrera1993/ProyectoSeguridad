@@ -332,9 +332,7 @@ public class ProyectoSeguridadServidor {
             numeroV = numeroV.multiply(new BigInteger(String.valueOf(a)));
             numeroV = numeroV.pow(b);
             numeroV= numeroV.mod(new BigInteger (String.valueOf(nConstant)));
-            
-            numeroV = numeroV.mod(new BigInteger(String.valueOf(nConstant)));
-                     
+                                
             llaveServidor= DigestUtils.sha256Hex(String.valueOf(numeroV));
             
                        
