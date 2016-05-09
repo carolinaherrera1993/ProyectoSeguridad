@@ -32,7 +32,7 @@ public class ProyectoSeguridadServidor {
     private static final int PORT = 9001;
     private static HashMap<String, Usuario> usuarios;
     public static final int gDF = 2;
-    public static final int nConstant = 53;
+    public static final int nConstant = 761;
     /**
      * The set of all names of clients in the chat room. Maintained so that we
      * can check that new clients are not registering name already in use.
@@ -182,7 +182,7 @@ public class ProyectoSeguridadServidor {
                     }
                 }
                 SecureRandom Aleatorio_b = new SecureRandom();
-                int b = (Math.abs(Aleatorio_b.nextInt()) % 1000) + 1;
+                int b = (Math.abs(Aleatorio_b.nextInt()) % 500) + 1;
                 int numeroB = bResolver(usuarios.get(name).getPassword(), b);
                 System.out.println("numero b: " + numeroB);
                 int numeroU = uResolver(numeroA, numeroB);
@@ -221,8 +221,8 @@ public class ProyectoSeguridadServidor {
                     }*/
                 }
 
-               String claveServidor= llaveServidor(numeroA, usuarios.get(name).getPassword(), numeroU, b);
-                System.out.println("clave Servidor: "+claveServidor);
+                String claveServidor = llaveServidor(numeroA, usuarios.get(name).getPassword(), numeroU, b);
+                System.out.println("clave Servidor: " + claveServidor);
                 // Now that a successful name has been chosen, add the
                 // socket's print writer to the set of all writers so
                 // this client can receive broadcast messages.
@@ -274,10 +274,10 @@ public class ProyectoSeguridadServidor {
 
         public Integer bResolver(String v, int b) {
 
-           // int numeroV = hex2decimal(v);
-            int numeroV = Integer.valueOf(v); 
+            // int numeroV = hex2decimal(v);
+            int numeroV = Integer.valueOf(v);
             Integer numeroB = 0;
-            numeroB = (int) ((3 * (numeroV) + (pow(gDF, b))) % nConstant);
+            numeroB = (int) ((3*(numeroV) + (pow(gDF, b))) % nConstant);
             return numeroB;
         }
 
@@ -286,7 +286,7 @@ public class ProyectoSeguridadServidor {
             Integer numeroU = 0;
 
             int u = a + b;
-            
+
             String sha1password = DigestUtils.sha256Hex(String.valueOf(u));
 
             numeroU = Math.abs(hex2decimal(sha1password));
@@ -324,18 +324,18 @@ public class ProyectoSeguridadServidor {
         }
 
         public String llaveServidor(Integer a, String v, int u, int b) {
-
+            System.out.println("numero a: " + a);
+            System.out.println("numero v: " + v);
             String llaveServidor;
             BigInteger numeroV = new BigInteger(v);
-            
+
             numeroV = numeroV.pow(u);
             numeroV = numeroV.multiply(new BigInteger(String.valueOf(a)));
             numeroV = numeroV.pow(b);
-            numeroV= numeroV.mod(new BigInteger (String.valueOf(nConstant)));
-                                
-            llaveServidor= DigestUtils.sha256Hex(String.valueOf(numeroV));
-            
-                       
+            numeroV = numeroV.mod(new BigInteger(String.valueOf(nConstant)));
+            System.out.println("resultado : " + numeroV);
+            llaveServidor = DigestUtils.sha256Hex(String.valueOf(numeroV));
+
             return llaveServidor;
         }
 

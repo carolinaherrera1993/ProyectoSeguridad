@@ -36,7 +36,7 @@ public class ProyectoSeguridadCliente {
     JTextField textField = new JTextField(40);
     JTextArea messageArea = new JTextArea(8, 40);
     public static final int gDF = 2;
-    public static final int nConstant = 53;
+    public static final int nConstant = 761;
 
     /**
      * Constructs the client by laying out the GUI and registering a listener
@@ -113,7 +113,7 @@ public class ProyectoSeguridadCliente {
                 socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
         int numeroA = 0;
-        int a = (Math.abs(Aleatorio_a.nextInt())%1000)+1;
+        int a = (Math.abs(Aleatorio_a.nextInt())%500)+1;
         int numeroB;
         int numeroU;
         int numeroN = 0;
@@ -152,6 +152,7 @@ public class ProyectoSeguridadCliente {
                 out.println(hashNumeroUMenos);
                 int x = Calcular_X(salt, pass);
                 String compartido = Generar_Secreto(numeroB, x, a, numeroU);
+                System.out.println("clave cliente: " + compartido);
             } else if (line.startsWith("NAMEACCEPTED")) {
                 textField.setEditable(true);
             } else if (line.startsWith("MESSAGE")) {
@@ -234,7 +235,7 @@ public class ProyectoSeguridadCliente {
         primero = primero.multiply(new BigInteger("3"));
         BigInteger nominador = new BigInteger(String.valueOf(B));
         primero = nominador.subtract(primero);
-        int res_par = a+ u*x;
+        int res_par = a + (u*x);
         BigInteger result = primero.pow(res_par);
         result = result.mod(new BigInteger(String.valueOf(nConstant)));
         return DigestUtils.sha256Hex(result.toString());
