@@ -152,7 +152,6 @@ public class ProyectoSeguridadCliente {
                 out.println(hashNumeroUMenos);
                 int x = Calcular_X(salt, pass);
                 String compartido = Generar_Secreto(numeroB, x, a, numeroU);
-                System.out.println("llave cliente: " + compartido);
             } else if (line.startsWith("NAMEACCEPTED")) {
                 textField.setEditable(true);
             } else if (line.startsWith("MESSAGE")) {
@@ -189,7 +188,7 @@ public class ProyectoSeguridadCliente {
         String sha1password = DigestUtils.sha256Hex(String.valueOf(u));
 
         numeroU = Math.abs(hex2decimal(sha1password));
-        numeroU = numeroU % 1000;
+        numeroU = numeroU % 100;
 
         return numeroU;
     }
@@ -224,7 +223,7 @@ public class ProyectoSeguridadCliente {
     }
     public int Calcular_X(int sal, String pass){
         String salt = String.valueOf(sal);
-        String Hash = DigestUtils.sha1Hex(salt + pass);
+        String Hash = DigestUtils.sha256Hex(salt + pass);
         int x = Math.abs(hex2decimal(Hash)%1000);
         return x;
     }
@@ -237,7 +236,8 @@ public class ProyectoSeguridadCliente {
         primero = nominador.subtract(primero);
         int res_par = a+ u*x;
         BigInteger result = primero.pow(res_par);
-        return DigestUtils.sha1Hex(result.toString());
+        result = result.mod(new BigInteger(String.valueOf(nConstant)));
+        return DigestUtils.sha256Hex(result.toString());
     }
 
     /**

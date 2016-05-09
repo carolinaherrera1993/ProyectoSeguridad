@@ -290,7 +290,7 @@ public class ProyectoSeguridadServidor {
             String sha1password = DigestUtils.sha256Hex(String.valueOf(u));
 
             numeroU = Math.abs(hex2decimal(sha1password));
-            numeroU = numeroU % 1000;
+            numeroU = numeroU % 100;
 
             return numeroU;
         }
@@ -333,6 +333,7 @@ public class ProyectoSeguridadServidor {
             numeroV = numeroV.pow(b);
             numeroV= numeroV.mod(new BigInteger (String.valueOf(nConstant)));
             
+            numeroV = numeroV.mod(new BigInteger(String.valueOf(nConstant)));
                      
             llaveServidor= DigestUtils.sha256Hex(String.valueOf(numeroV));
             
