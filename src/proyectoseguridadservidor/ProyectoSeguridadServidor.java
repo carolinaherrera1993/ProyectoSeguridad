@@ -14,14 +14,18 @@ import static java.lang.Math.pow;
 import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.Key;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
+import javax.crypto.Cipher;
 import org.apache.commons.codec.digest.DigestUtils;
 import static proyectoseguridadcliente.ProyectoSeguridadCliente.gDF;
 import static proyectoseguridadcliente.ProyectoSeguridadCliente.nConstant;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 
 /**
  *
@@ -182,9 +186,10 @@ public class ProyectoSeguridadServidor {
                     }
                 }
                 SecureRandom Aleatorio_b = new SecureRandom();
-                int b = (Math.abs(Aleatorio_b.nextInt()) % 500) + 1;
+                int b = (Math.abs(Aleatorio_b.nextInt()) % 100) + 1;
+                System.out.println("aleatoria b: " + b);
                 int numeroB = bResolver(usuarios.get(name).getPassword(), b);
-                System.out.println("numero b: " + numeroB);
+                System.out.println("numero B: " + numeroB);
                 int numeroU = uResolver(numeroA, numeroB);
                 String hashUNString = hashMasUN(numeroU, Puzzle_N);
                 out.println("BRESOLVER" + " " + numeroB + " " + hashUNString);
@@ -275,10 +280,14 @@ public class ProyectoSeguridadServidor {
         public Integer bResolver(String v, int b) {
 
             // int numeroV = hex2decimal(v);
-            int numeroV = Integer.valueOf(v);
-            Integer numeroB = 0;
-            numeroB = (int) ((3*(numeroV) + (pow(gDF, b))) % nConstant);
-            return numeroB;
+            BigInteger numeroV = new BigInteger (v); //Integer.valueOf(v);
+            BigInteger numeroB = new BigInteger(String.valueOf(gDF));
+            numeroB= numeroB.pow(b); 
+            numeroB=numeroB.add(numeroV); 
+            numeroB=numeroB.mod(new BigInteger (String.valueOf(nConstant)));
+            
+         //   numeroB = (int) (((numeroV) + (pow(gDF, b))) % nConstant);
+            return numeroB.intValue();
         }
 
         public Integer uResolver(int a, int b) {
@@ -324,7 +333,7 @@ public class ProyectoSeguridadServidor {
         }
 
         public String llaveServidor(Integer a, String v, int u, int b) {
-            System.out.println("numero a: " + a);
+            System.out.println("numero A: " + a);
             System.out.println("numero v: " + v);
             String llaveServidor;
             BigInteger numeroV = new BigInteger(v);
@@ -338,6 +347,25 @@ public class ProyectoSeguridadServidor {
 
             return llaveServidor;
         }
+
+   /*     public static String encrypt(String Data, String llave) throws Exception {
+            Key key = generateKey();
+            Cipher c = Cipher.getInstance("AES");
+            c.init(Cipher.ENCRYPT_MODE, key);
+            byte[] encVal = c.doFinal(Data.getBytes());
+            String encryptedValue = new BASE64Encoder().encode(encVal);
+            return encryptedValue;
+        }
+
+        public static String decrypt(String encryptedData) throws Exception {
+            Key key = generateKey();
+            Cipher c = Cipher.getInstance("AES");
+            c.init(Cipher.DECRYPT_MODE, key);
+            byte[] decordedValue = new BASE64Decoder().decodeBuffer(encryptedData);
+            byte[] decValue = c.doFinal(decordedValue);
+            String decryptedValue = new String(decValue);
+            return decryptedValue;
+        }*/
 
     }
 }

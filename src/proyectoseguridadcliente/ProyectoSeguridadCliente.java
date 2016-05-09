@@ -113,7 +113,8 @@ public class ProyectoSeguridadCliente {
                 socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
         int numeroA = 0;
-        int a = (Math.abs(Aleatorio_a.nextInt())%500)+1;
+        int a = (Math.abs(Aleatorio_a.nextInt())%100)+1;
+        System.out.println("aleatoria a: " + a);
         int numeroB;
         int numeroU;
         int numeroN = 0;
@@ -232,12 +233,13 @@ public class ProyectoSeguridadCliente {
     public String Generar_Secreto(int B, int x, int a, int u){
         BigInteger primero = new BigInteger(String.valueOf(gDF));
         primero = primero.pow(x);
-        primero = primero.multiply(new BigInteger("3"));
+        //primero = primero.multiply(new BigInteger("3"));
         BigInteger nominador = new BigInteger(String.valueOf(B));
         primero = nominador.subtract(primero);
         int res_par = a + (u*x);
         BigInteger result = primero.pow(res_par);
         result = result.mod(new BigInteger(String.valueOf(nConstant)));
+        System.out.println("resultado: " + result);
         return DigestUtils.sha256Hex(result.toString());
     }
 
