@@ -14,13 +14,24 @@ import static java.lang.Math.pow;
 import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.digest.DigestUtils;
 import static proyectoseguridadcliente.ProyectoSeguridadCliente.gDF;
 import static proyectoseguridadcliente.ProyectoSeguridadCliente.nConstant;
@@ -37,6 +48,7 @@ public class ProyectoSeguridadServidor {
     private static HashMap<String, Usuario> usuarios;
     public static final int gDF = 2;
     public static final int nConstant = 761;
+
     /**
      * The set of all names of clients in the chat room. Maintained so that we
      * can check that new clients are not registering name already in use.
@@ -228,6 +240,60 @@ public class ProyectoSeguridadServidor {
 
                 String claveServidor = llaveServidor(numeroA, usuarios.get(name).getPassword(), numeroU, b);
                 System.out.println("clave Servidor: " + claveServidor);
+
+                while (true) {
+
+                    String ingreso = in.readLine();
+                    if (ingreso == null) {
+                        return;
+                    } else {
+
+                        String[] texto = ingreso.split(" ");
+                        String autenticado = texto[0];
+
+                        if (autenticado.equals("AUTENTICADO")) {
+                            System.out.println("Cliente Autenticado");
+                            usuarios.get(name).setActivo("Activo");
+                            usuarios.get(name).setClaveGeneradaServidor(claveServidor);
+                            break;
+                        } else {
+                            out.println("REJECT");
+                            socket.close();
+                        }
+
+                    }
+                }
+                String userA = "";
+                for (Usuario value : usuarios.values()) {
+                    if (value.getActivo().equals("Activo")) {
+                        userA+=" " + value.getNombreUsuario(); 
+                    }
+                }
+
+                out.println("USUARIOSACTIVOS" + " " + userA);
+
+                // Accept messages from this client and broadcast them.
+                // Ignore other clients that cannot be broadcasted to.
+                while (true) {
+
+                    String ingreso = in.readLine();
+                    if (ingreso == null) {
+                        return;
+                    } else {
+
+                        String[] texto = ingreso.split(" ");
+                        int N_obtenida = Integer.valueOf(texto[0]);
+
+                        if (N_obtenida == Puzzle_N) {
+                            System.out.println("N Correcto");
+                            break;
+                        } else {
+                            out.println("REJECT");
+                            socket.close();
+                        }
+
+                    }
+                }
                 // Now that a successful name has been chosen, add the
                 // socket's print writer to the set of all writers so
                 // this client can receive broadcast messages.
@@ -247,6 +313,8 @@ public class ProyectoSeguridadServidor {
                 }
             } catch (IOException e) {
                 System.out.println(e);
+            } catch (Exception ex) {
+                Logger.getLogger(ProyectoSeguridadServidor.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
                 // This client is going down!  Remove its name and its print
                 // writer from the sets, and close its socket.
@@ -280,14 +348,14 @@ public class ProyectoSeguridadServidor {
         public Integer bResolver(String v, int b) {
 
             // int numeroV = hex2decimal(v);
-            BigInteger numeroV = new BigInteger (v); //Integer.valueOf(v);
-            numeroV= numeroV.multiply(new BigInteger(String.valueOf("3")));
+            BigInteger numeroV = new BigInteger(v); //Integer.valueOf(v);
+            numeroV = numeroV.multiply(new BigInteger(String.valueOf("3")));
             BigInteger numeroB = new BigInteger(String.valueOf(gDF));
-            numeroB= numeroB.pow(b); 
-            numeroB=numeroB.add(numeroV); 
-            numeroB=numeroB.mod(new BigInteger (String.valueOf(nConstant)));
-            
-         //   numeroB = (int) (((numeroV) + (pow(gDF, b))) % nConstant);
+            numeroB = numeroB.pow(b);
+            numeroB = numeroB.add(numeroV);
+            numeroB = numeroB.mod(new BigInteger(String.valueOf(nConstant)));
+
+            //   numeroB = (int) (((numeroV) + (pow(gDF, b))) % nConstant);
             return numeroB.intValue();
         }
 
@@ -349,24 +417,29 @@ public class ProyectoSeguridadServidor {
             return llaveServidor;
         }
 
-   /*     public static String encrypt(String Data, String llave) throws Exception {
-            Key key = generateKey();
-            Cipher c = Cipher.getInstance("AES");
-            c.init(Cipher.ENCRYPT_MODE, key);
-            byte[] encVal = c.doFinal(Data.getBytes());
-            String encryptedValue = new BASE64Encoder().encode(encVal);
-            return encryptedValue;
+        /*  public byte[] EncriptarAES(byte[] texto, SecretKey key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+
+            Cipher AesCipher = Cipher.getInstance("AES");
+            AesCipher.init(Cipher.ENCRYPT_MODE, key);
+            byte[] byteCipherText = AesCipher.doFinal(texto);
+            return byteCipherText;
         }
 
-        public static String decrypt(String encryptedData) throws Exception {
-            Key key = generateKey();
-            Cipher c = Cipher.getInstance("AES");
-            c.init(Cipher.DECRYPT_MODE, key);
-            byte[] decordedValue = new BASE64Decoder().decodeBuffer(encryptedData);
-            byte[] decValue = c.doFinal(decordedValue);
-            String decryptedValue = new String(decValue);
-            return decryptedValue;
-        }*/
+        public byte[] DecryptAES(byte[] cipherText, SecretKey key) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 
+            Cipher AesCipher = Cipher.getInstance("AES");
+            AesCipher.init(Cipher.DECRYPT_MODE, key);
+            byte[] bytePlainText = AesCipher.doFinal(cipherText);
+            return bytePlainText;
+        }
+
+        public SecretKey GenerarPass(String Hash) throws NoSuchAlgorithmException {
+            byte[] key = Hash.getBytes();
+            MessageDigest sha = MessageDigest.getInstance("SHA-1");
+            key = sha.digest(key);
+            key = Arrays.copyOf(key, 16); // use only first 128 bit
+            SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
+            return secretKeySpec;
+        }*/
     }
 }

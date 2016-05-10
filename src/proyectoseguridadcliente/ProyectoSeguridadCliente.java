@@ -16,6 +16,7 @@ import static java.lang.Math.pow;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -37,6 +38,7 @@ public class ProyectoSeguridadCliente {
     JTextArea messageArea = new JTextArea(8, 40);
     public static final int gDF = 2;
     public static final int nConstant = 761;
+    ArrayList<String> usuariosActivos;
 
     /**
      * Constructs the client by laying out the GUI and registering a listener
@@ -48,6 +50,7 @@ public class ProyectoSeguridadCliente {
     public ProyectoSeguridadCliente() {
 
         // Layout GUI
+        usuariosActivos = new ArrayList<>();
         textField.setEditable(false);
         messageArea.setEditable(false);
         frame.getContentPane().add(textField, "North");
@@ -94,11 +97,11 @@ public class ProyectoSeguridadCliente {
         return JOptionPane.showInputDialog(
                 frame, "Ingrese el nombre de usuario:", "Screen name selection", JOptionPane.PLAIN_MESSAGE);
     }
+
     private String getPass() {
         return JOptionPane.showInputDialog(
                 frame, "Ingrese la contraseña:", "Screen name selection", JOptionPane.PLAIN_MESSAGE);
     }
-
 
     /**
      * Connects to the server then enters the processing loop.
@@ -113,26 +116,25 @@ public class ProyectoSeguridadCliente {
                 socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
         int numeroA = 0;
-        int a = (Math.abs(Aleatorio_a.nextInt())%100)+1;
+        int a = (Math.abs(Aleatorio_a.nextInt()) % 100) + 1;
         System.out.println("aleatoria a: " + a);
         int numeroB;
         int numeroU;
         int numeroN = 0;
         int salt = 0;
-        String pass= "";
+        String pass = "";
         // Process all messages from server, according to the protocol.
         while (true) {
             String line = in.readLine();
             if (line == null) {
-                        return;
-            }
-            else if (line.startsWith("SUBMITNAME")) {
-                numeroA = (int) ((pow(gDF, a))%nConstant);
+                return;
+            } else if (line.startsWith("SUBMITNAME")) {
+                numeroA = (int) ((pow(gDF, a)) % nConstant);
                 out.println(getName() + " " + numeroA); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
                 pass = getPass();
             } else if (line.startsWith("SALTHASH")) {
                 String[] separarHash = line.split(" ");
-                salt= Integer.valueOf(separarHash[2]);
+                salt = Integer.valueOf(separarHash[2]);
                 numeroN = restoreSaltHash(String.valueOf(salt), separarHash[1]);
                 out.println(numeroN);
                 System.out.println(numeroN);
@@ -154,8 +156,11 @@ public class ProyectoSeguridadCliente {
                 int x = Calcular_X(salt, pass);
                 String compartido = Generar_Secreto(numeroB, x, a, numeroU);
                 System.out.println("clave cliente: " + compartido);
+                out.println("AUTENTICADO");
             } else if (line.startsWith("NAMEACCEPTED")) {
                 textField.setEditable(true);
+            } else if (line.startsWith("USUARIOSACTIVOS")) {
+                getUsuariosActivos(line);
             } else if (line.startsWith("MESSAGE")) {
                 messageArea.append(line.substring(8) + "\n");
             } else if (line.startsWith("REJECT")) {
@@ -166,9 +171,18 @@ public class ProyectoSeguridadCliente {
         }
     }
 
+    public void getUsuariosActivos(String info) {
+
+        String[] usr = info.split(" ");
+
+        for (int i = 1; i < usr.length; i++) {
+            usuariosActivos.add(usr[i]);
+        }
+
+    }
+
     public Integer restoreSaltHash(String salt, String hash) {
 
-        
         Integer num = 1;
 
         for (int x = 0; x < 256; x++) {
@@ -223,20 +237,22 @@ public class ProyectoSeguridadCliente {
         return sha1password;
 
     }
-    public int Calcular_X(int sal, String pass){
+
+    public int Calcular_X(int sal, String pass) {
         String salt = String.valueOf(sal);
         String Hash = DigestUtils.sha256Hex(salt + pass);
-        int x = Math.abs(hex2decimal(Hash)%1000);
+        int x = Math.abs(hex2decimal(Hash) % 1000);
+        System.out.println("x: " +x);
         return x;
     }
-    
-    public String Generar_Secreto(int B, int x, int a, int u){
+
+    public String Generar_Secreto(int B, int x, int a, int u) {
         BigInteger primero = new BigInteger(String.valueOf(gDF));
         primero = primero.pow(x);
         primero = primero.multiply(new BigInteger("3"));
         BigInteger nominador = new BigInteger(String.valueOf(B));
         primero = nominador.subtract(primero);
-        int res_par = a + (u*x);
+        int res_par = a + (u * x);
         BigInteger result = primero.pow(res_par);
         result = result.mod(new BigInteger(String.valueOf(nConstant)));
         System.out.println("resultado: " + result);

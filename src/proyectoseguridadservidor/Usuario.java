@@ -14,6 +14,33 @@ public class Usuario {
     private String nombreUsuario;
     private Integer salt; 
     private String password; 
+    private String activo; 
+    private String ip; 
+    private String claveGeneradaServidor; 
+
+    public String getClaveGeneradaServidor() {
+        return claveGeneradaServidor;
+    }
+
+    public void setClaveGeneradaServidor(String claveGeneradaServidor) {
+        this.claveGeneradaServidor = claveGeneradaServidor;
+    }
+
+    public String getActivo() {
+        return activo;
+    }
+
+    public void setActivo(String activo) {
+        this.activo = activo;
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
 
     public Usuario(String nombreUsuario, Integer salt, String password) {
         this.nombreUsuario = nombreUsuario;
