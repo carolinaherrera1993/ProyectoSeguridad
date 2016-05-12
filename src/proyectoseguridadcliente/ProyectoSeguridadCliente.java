@@ -21,6 +21,8 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -58,6 +60,7 @@ public class ProyectoSeguridadCliente {
     DefaultComboBoxModel usuariosClientes = new DefaultComboBoxModel();
     String clienteSeleccionado;
     String nombre = "";
+    SecretKey w = null;
 
     /**
      * Constructs the client by laying out the GUI and registering a listener
@@ -86,11 +89,26 @@ public class ProyectoSeguridadCliente {
 
             @Override
             public void actionPerformed(ActionEvent event) {
-                JComboBox<String> combo = (JComboBox<String>) event.getSource();
-                clienteSeleccionado = (String) combo.getSelectedItem();
+                try {
+                    JComboBox<String> combo = (JComboBox<String>) event.getSource();
+                    clienteSeleccionado = (String) combo.getSelectedItem();
 
-                System.out.println("Cliente seleccionado: " + clienteSeleccionado);
-                out.println("TALKTO" + " " + nombre + " " + clienteSeleccionado);
+                    System.out.println("Cliente seleccionado: " + clienteSeleccionado);
+                    String info = "TALKTO" + " " + nombre + " " + clienteSeleccionado;
+                    out.println(EncriptarAES(info.getBytes(), w));
+                } catch (NoSuchAlgorithmException ex) {
+                    Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (NoSuchPaddingException ex) {
+                    Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InvalidKeyException ex) {
+                    Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IllegalBlockSizeException ex) {
+                    Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (BadPaddingException ex) {
+                    Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.security.InvalidKeyException ex) {
+                    Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
 
@@ -146,7 +164,7 @@ public class ProyectoSeguridadCliente {
     private void run() throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException {
 
         SecureRandom Aleatorio_a = new SecureRandom();
-        
+
         // Make connection and initialize streams
         String serverAddress = "localhost";
         Socket socket = new Socket(serverAddress, 9001);
@@ -161,6 +179,7 @@ public class ProyectoSeguridadCliente {
         int numeroN = 0;
         int salt = 0;
         String pass = "";
+        //w = null;
         // Process all messages from server, according to the protocol.
         while (true) {
             String line = in.readLine();
@@ -169,6 +188,7 @@ public class ProyectoSeguridadCliente {
             } else if (line.startsWith("SUBMITNAME")) {
                 numeroA = (int) ((pow(gDF, a)) % nConstant);
                 nombre = getName();
+                frame.setTitle("Chat " + nombre);
                 out.println(nombre + " " + numeroA); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
                 pass = getPass();
             } else if (line.startsWith("SALTHASH")) {
@@ -195,15 +215,15 @@ public class ProyectoSeguridadCliente {
                 int x = Calcular_X(salt, pass);
                 String compartido = Generar_Secreto(numeroB, x, a, numeroU);
                 System.out.println("clave cliente: " + compartido);
-                SecretKey w = GenerarPass(compartido);
+                w = GenerarPass(compartido);
                 out.println(EncriptarAES("AUTENTICADO".getBytes(), w));
+                out.println(EncriptarAES("LISTA".getBytes(), w));
             } else if (line.startsWith("NAMEACCEPTED")) {
                 textField.setEditable(true);
             } else if (line.startsWith("USUARIOSACTIVOS")) {
                 getUsuariosActivos(line, nombre);
                 clientesJCB.setEnabled(true);
-                
-               
+
             } else if (line.startsWith("MESSAGE")) {
                 messageArea.append(line.substring(8) + "\n");
             } else if (line.startsWith("REJECT")) {
@@ -211,11 +231,13 @@ public class ProyectoSeguridadCliente {
                         frame, "Conexion Rechazada!", "Screen reject", JOptionPane.ERROR_MESSAGE);
                 frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
             } else if (line.startsWith("CONEXION ")) {
-                String [] us= line.split(" "); 
-                int dialogResult = JOptionPane.showConfirmDialog(null, "Desea conectarse con " + us[1], "Warning",JOptionPane.YES_NO_OPTION);
+                String[] us = line.split(" ");
+                int dialogResult = JOptionPane.showConfirmDialog(null, "Desea conectarse con " + us[1], "Warning", JOptionPane.YES_NO_OPTION);
                 if (dialogResult == JOptionPane.YES_OPTION) {
+                    out.println(EncriptarAES("ACEPTO".getBytes(), w));
                     System.out.println("acepto");
                 } else if (dialogResult == JOptionPane.NO_OPTION) {
+                    out.println(EncriptarAES("NOACEPTO".getBytes(), w));
                     System.out.println("no acepto");
                 }
             }
@@ -227,7 +249,7 @@ public class ProyectoSeguridadCliente {
         String[] usr = info.split(" ");
 
         for (int i = 2; i < usr.length; i++) {
-            if (usr[i] != usuario) {
+            if (!usuario.equals(usr[i])) {
                 usuariosActivos.add(usr[i]);
                 usuariosClientes.addElement(usr[i]);
             }
@@ -313,8 +335,8 @@ public class ProyectoSeguridadCliente {
         System.out.println("resultado: " + result);
         return DigestUtils.sha256Hex(result.toString());
     }
-    
-    public String EncriptarAES(byte[] texto,SecretKey key ) throws NoSuchAlgorithmException, NoSuchPaddingException, javax.management.openmbean.InvalidKeyException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException{
+
+    public String EncriptarAES(byte[] texto, SecretKey key) throws NoSuchAlgorithmException, NoSuchPaddingException, javax.management.openmbean.InvalidKeyException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException {
 
         Cipher AesCipher = Cipher.getInstance("AES");
         AesCipher.init(Cipher.ENCRYPT_MODE, key);
@@ -322,24 +344,23 @@ public class ProyectoSeguridadCliente {
         String Texto = new BASE64Encoder().encode(byteCipherText);
         return Texto;
     }
-    
-    public byte[] DecryptAES(String cipherText,SecretKey key ) throws NoSuchAlgorithmException, javax.management.openmbean.InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException, IOException{
+
+    public byte[] DecryptAES(String cipherText, SecretKey key) throws NoSuchAlgorithmException, javax.management.openmbean.InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException, IOException {
         byte[] Texto = new BASE64Decoder().decodeBuffer(cipherText);
         Cipher AesCipher = Cipher.getInstance("AES");
         AesCipher.init(Cipher.DECRYPT_MODE, key);
         byte[] bytePlainText = AesCipher.doFinal(Texto);
         return bytePlainText;
     }
-    
-    public SecretKey GenerarPass(String Hash) throws NoSuchAlgorithmException{
-       byte[] key = Hash.getBytes();
-       MessageDigest sha = MessageDigest.getInstance("SHA-1");
-       key = sha.digest(key);
-       key = Arrays.copyOf(key, 16); // use only first 128 bit
-       SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
-       return secretKeySpec;
-    }
 
+    public SecretKey GenerarPass(String Hash) throws NoSuchAlgorithmException {
+        byte[] key = Hash.getBytes();
+        MessageDigest sha = MessageDigest.getInstance("SHA-1");
+        key = sha.digest(key);
+        key = Arrays.copyOf(key, 16); // use only first 128 bit
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
+        return secretKeySpec;
+    }
 
     /**
      * Runs the client as an application with a closeable frame.

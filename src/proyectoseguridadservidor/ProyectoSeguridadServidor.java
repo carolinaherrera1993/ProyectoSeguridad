@@ -266,27 +266,18 @@ public class ProyectoSeguridadServidor {
                     }
                 }
 
-                out.println("NAMEACCEPTED");
                 writers.put(name, out);
-
-                String userA = "";
-                for (Usuario value : usuarios.values()) {
-                    if (value.getActivo().equals("Activo")) {
-                        userA += " " + value.getNombreUsuario();
-                    }
-                }
-
-                out.println("USUARIOSACTIVOS" + " " + userA);
 
                 // Accept messages from this client and broadcast them.
                 // Ignore other clients that cannot be broadcasted to.
                 String usuarioSeleccionado = "";
+
                 while (true) {
+
                     String ingreso = in.readLine();
                     if (ingreso == null) {
                         return;
-                    } else {
-
+                    } else if (ingreso.startsWith("TALKTO")) {
                         String[] texto = ingreso.split(" ");
                         usuarioSeleccionado = texto[2];
                         if (usuarios.containsKey(usuarioSeleccionado)) {
@@ -295,34 +286,51 @@ public class ProyectoSeguridadServidor {
                                 String key = entry.getKey();
                                 if (key.equals(usuarioSeleccionado)) {
                                     PrintWriter w = entry.getValue();
-                                    w.println("CONEXION " + usuarioSeleccionado);
+                                    w.println("CONEXION " + name);
+                                    System.out.println("Enviando conexion");
+                                    break;
 
                                 }
-                                // do something with key and/or tab
                             }
-                            break;
                         } else {
                             out.println("REJECT");
                             socket.close();
+                            break;
                         }
 
+                    } else if (ingreso.startsWith("LISTA")) {
+
+                        String userA = "";
+                        for (Usuario value : usuarios.values()) {
+                            if (value.getActivo().equals("Activo")) {
+                                userA += " " + value.getNombreUsuario();
+                            }
+                        }
+                        out.println("USUARIOSACTIVOS" + " " + userA);
+
+                    } else if (ingreso.equals("ACEPTO")) {
+                        System.out.println("USUARIO ACEPTADO");
+
+                        // SE DEBE AGREGAR LA FUNCION DE CREAR LAS DOS CLAVES ENTRE LOS DOS CLIENTES Y MANDAR A CADA UNO. 
+                    } else {
+                        out.println("REJECT");
+                        socket.close();
+                        break;
                     }
+
                 }
 
-                /* for (PrintWriter writer : writers.values()) {
-                    if (writer.equals(usuarioSeleccionado)) {
-                        writer.println();
-                    }
-                }*/
- /* while (true) {
+                out.println("NAMEACCEPTED");
+
+                while (true) {
                     String input = in.readLine();
                     if (input == null) {
                         return;
                     }
-                    for (PrintWriter writer : writers) {
+                    for (PrintWriter writer : writers.values()) {
                         writer.println("MESSAGE " + name + ": " + input);
                     }
-                }*/
+                }
             } catch (IOException e) {
                 System.out.println(e);
             } catch (Exception ex) {
