@@ -94,6 +94,7 @@ public class ProyectoSeguridadCliente {
                 }
             }
         });
+        listaButton.setEnabled(false);
         usuariosActivos = new ArrayList<>();
         usuariosClientes.addElement("Seleccione el Cliente:");
         textField.setText("Ingrese el texto para enviar ");
@@ -211,18 +212,20 @@ public class ProyectoSeguridadCliente {
             } else if (line.startsWith("SUBMITNAME")) {
                 numeroA = (int) ((pow(gDF, a)) % nConstant);
                 nombre = getName();
-                if (nombre==null || nombre.equals("")) {
+                if (nombre == null || nombre.equals("")) {
                     JOptionPane.showMessageDialog(
                             frame, "Conexion Rechazada! No ingreso el usuario", "Screen reject", JOptionPane.ERROR_MESSAGE);
                     frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+                    break;
                 }
                 frame.setTitle("Chat " + nombre);
                 out.println(nombre + " " + numeroA); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
                 pass = getPass();
-                if (pass==null || pass.equals("")) {
+                if (pass == null || pass.equals("")) {
                     JOptionPane.showMessageDialog(
                             frame, "Conexion Rechazada! No ingreso la contrasena", "Screen reject", JOptionPane.ERROR_MESSAGE);
                     frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+                    break;
                 }
             } else if (line.startsWith("SALTHASH")) {
                 String[] separarHash = line.split(" ");
@@ -250,30 +253,51 @@ public class ProyectoSeguridadCliente {
                 System.out.println("clave cliente: " + compartido);
                 w = GenerarPass(compartido);
                 out.println(EncriptarAES("AUTENTICADO".getBytes(), w));
-                //out.println(EncriptarAES("LISTA".getBytes(), w));
-            } else if (line.startsWith("NAMEACCEPTED")) {
-                textField.setEditable(true);
-            } else if (line.startsWith("USUARIOSACTIVOS")) {
-                getUsuariosActivos(line, nombre);
-                clientesJCB.setEnabled(true);
-            } else if (line.startsWith("MESSAGE")) {
-                messageArea.append(line.substring(8) + "\n");
+                //out.println(EncriptarAES("LISTA".getBytes(), w));                
+                listaButton.setEnabled(true);
+                break;
             } else if (line.startsWith("REJECT")) {
                 JOptionPane.showMessageDialog(
                         frame, "Conexion Rechazada!", "Screen reject", JOptionPane.ERROR_MESSAGE);
                 frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-            } else if (line.startsWith("CONEXION ")) {
-                String[] us = line.split(" ");
-                int dialogResult = JOptionPane.showConfirmDialog(null, "Desea conectarse con " + us[1], "Warning", JOptionPane.YES_NO_OPTION);
-                if (dialogResult == JOptionPane.YES_OPTION) {
-                    String acp = "ACEPTO " + us[1];
-                    out.println(EncriptarAES(acp.getBytes(), w));
-                    System.out.println("acepto");
-                } else if (dialogResult == JOptionPane.NO_OPTION) {
-                    out.println(EncriptarAES("NOACEPTO".getBytes(), w));
-                    System.out.println("no acepto");
-                }
+                break;
             }
+        }
+
+        while (true) {
+            String line = in.readLine();
+            if (line == null) {
+                return;
+            } else {
+                line = new String(DecryptAES(line, w));
+                if (line.startsWith("NAMEACCEPTED")) {
+                    textField.setEditable(true);
+                } else if (line.startsWith("USUARIOSACTIVOS")) {
+                    getUsuariosActivos(line, nombre);
+                    clientesJCB.setEnabled(true);
+                } else if (line.startsWith("MESSAGE")) {
+                    messageArea.append(line.substring(8) + "\n");
+                } else if (line.startsWith("CONEXION")) {
+                    String[] us = line.split(" ");
+                    int dialogResult = JOptionPane.showConfirmDialog(null, "Desea conectarse con " + us[1], "Warning", JOptionPane.YES_NO_OPTION);
+                    if (dialogResult == JOptionPane.YES_OPTION) {
+                        String acp = "ACEPTO " + us[1];
+                        out.println(EncriptarAES(acp.getBytes(), w));
+                        System.out.println("acepto");
+                    } else if (dialogResult == JOptionPane.NO_OPTION) {
+                        out.println(EncriptarAES("NOACEPTO".getBytes(), w));
+                        System.out.println("no acepto");
+                    } else if (line.startsWith("ENVIOLLAVE")) {
+
+                    }
+                } else if (line.startsWith("REJECT")) {
+                    JOptionPane.showMessageDialog(
+                            frame, "Conexion Rechazada!", "Screen reject", JOptionPane.ERROR_MESSAGE);
+                    frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+                }
+
+            }
+
         }
     }
 

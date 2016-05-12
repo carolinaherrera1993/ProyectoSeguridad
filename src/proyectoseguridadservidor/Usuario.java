@@ -17,6 +17,7 @@ public class Usuario {
     private String activo; 
     private String ip; 
     private String claveGeneradaServidor; 
+    
 
     public String getClaveGeneradaServidor() {
         return claveGeneradaServidor;
