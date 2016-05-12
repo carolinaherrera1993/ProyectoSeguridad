@@ -15,9 +15,19 @@ import java.io.PrintWriter;
 import static java.lang.Math.pow;
 import java.math.BigInteger;
 import java.net.Socket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import javax.management.openmbean.InvalidKeyException;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -27,6 +37,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import org.apache.commons.codec.digest.DigestUtils;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 
 /**
  *
@@ -131,7 +143,7 @@ public class ProyectoSeguridadCliente {
     /**
      * Connects to the server then enters the processing loop.
      */
-    private void run() throws IOException {
+    private void run() throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException {
 
         SecureRandom Aleatorio_a = new SecureRandom();
         
@@ -183,7 +195,8 @@ public class ProyectoSeguridadCliente {
                 int x = Calcular_X(salt, pass);
                 String compartido = Generar_Secreto(numeroB, x, a, numeroU);
                 System.out.println("clave cliente: " + compartido);
-                out.println("AUTENTICADO");
+                SecretKey w = GenerarPass(compartido);
+                out.println(EncriptarAES("AUTENTICADO".getBytes(), w));
             } else if (line.startsWith("NAMEACCEPTED")) {
                 textField.setEditable(true);
             } else if (line.startsWith("USUARIOSACTIVOS")) {
@@ -300,6 +313,33 @@ public class ProyectoSeguridadCliente {
         System.out.println("resultado: " + result);
         return DigestUtils.sha256Hex(result.toString());
     }
+    
+    public String EncriptarAES(byte[] texto,SecretKey key ) throws NoSuchAlgorithmException, NoSuchPaddingException, javax.management.openmbean.InvalidKeyException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException{
+
+        Cipher AesCipher = Cipher.getInstance("AES");
+        AesCipher.init(Cipher.ENCRYPT_MODE, key);
+        byte[] byteCipherText = AesCipher.doFinal(texto);
+        String Texto = new BASE64Encoder().encode(byteCipherText);
+        return Texto;
+    }
+    
+    public byte[] DecryptAES(String cipherText,SecretKey key ) throws NoSuchAlgorithmException, javax.management.openmbean.InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException, IOException{
+        byte[] Texto = new BASE64Decoder().decodeBuffer(cipherText);
+        Cipher AesCipher = Cipher.getInstance("AES");
+        AesCipher.init(Cipher.DECRYPT_MODE, key);
+        byte[] bytePlainText = AesCipher.doFinal(Texto);
+        return bytePlainText;
+    }
+    
+    public SecretKey GenerarPass(String Hash) throws NoSuchAlgorithmException{
+       byte[] key = Hash.getBytes();
+       MessageDigest sha = MessageDigest.getInstance("SHA-1");
+       key = sha.digest(key);
+       key = Arrays.copyOf(key, 16); // use only first 128 bit
+       SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
+       return secretKeySpec;
+    }
+
 
     /**
      * Runs the client as an application with a closeable frame.

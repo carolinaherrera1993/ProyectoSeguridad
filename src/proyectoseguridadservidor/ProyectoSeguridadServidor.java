@@ -5,6 +5,7 @@
  */
 package proyectoseguridadservidor;
 
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -239,14 +240,16 @@ public class ProyectoSeguridadServidor {
 
                 String claveServidor = llaveServidor(numeroA, usuarios.get(name).getPassword(), numeroU, b);
                 System.out.println("clave Servidor: " + claveServidor);
-
+                SecretKey llave_compartida = GenerarPass(claveServidor);
+                
                 while (true) {
 
                     String ingreso = in.readLine();
                     if (ingreso == null) {
                         return;
                     } else {
-
+                        ingreso = new String(DecryptAES(ingreso, llave_compartida));
+                        
                         String[] texto = ingreso.split(" ");
                         String autenticado = texto[0];
 
@@ -426,29 +429,30 @@ public class ProyectoSeguridadServidor {
             return llaveServidor;
         }
 
-        /*  public byte[] EncriptarAES(byte[] texto, SecretKey key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public String EncriptarAES(byte[] texto,SecretKey key ) throws NoSuchAlgorithmException, NoSuchPaddingException, javax.management.openmbean.InvalidKeyException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException{
 
-            Cipher AesCipher = Cipher.getInstance("AES");
-            AesCipher.init(Cipher.ENCRYPT_MODE, key);
-            byte[] byteCipherText = AesCipher.doFinal(texto);
-            return byteCipherText;
-        }
-
-        public byte[] DecryptAES(byte[] cipherText, SecretKey key) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-
-            Cipher AesCipher = Cipher.getInstance("AES");
-            AesCipher.init(Cipher.DECRYPT_MODE, key);
-            byte[] bytePlainText = AesCipher.doFinal(cipherText);
-            return bytePlainText;
-        }
-
-        public SecretKey GenerarPass(String Hash) throws NoSuchAlgorithmException {
-            byte[] key = Hash.getBytes();
-            MessageDigest sha = MessageDigest.getInstance("SHA-1");
-            key = sha.digest(key);
-            key = Arrays.copyOf(key, 16); // use only first 128 bit
-            SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
-            return secretKeySpec;
-        }*/
+        Cipher AesCipher = Cipher.getInstance("AES");
+        AesCipher.init(Cipher.ENCRYPT_MODE, key);
+        byte[] byteCipherText = AesCipher.doFinal(texto);
+        String Texto = new BASE64Encoder().encode(byteCipherText);
+        return Texto;
+    }
+    
+    public byte[] DecryptAES(String cipherText,SecretKey key ) throws NoSuchAlgorithmException, javax.management.openmbean.InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException, IOException{
+        byte[] Texto = new BASE64Decoder().decodeBuffer(cipherText);
+        Cipher AesCipher = Cipher.getInstance("AES");
+        AesCipher.init(Cipher.DECRYPT_MODE, key);
+        byte[] bytePlainText = AesCipher.doFinal(Texto);
+        return bytePlainText;
+    }
+    
+    public SecretKey GenerarPass(String Hash) throws NoSuchAlgorithmException{
+       byte[] key = Hash.getBytes();
+       MessageDigest sha = MessageDigest.getInstance("SHA-1");
+       key = sha.digest(key);
+       key = Arrays.copyOf(key, 16); // use only first 128 bit
+       SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
+       return secretKeySpec;
+    }
     }
 }
