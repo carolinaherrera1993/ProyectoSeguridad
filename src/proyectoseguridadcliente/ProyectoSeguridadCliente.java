@@ -8,13 +8,20 @@ package proyectoseguridadcliente;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import static java.lang.Math.pow;
 import java.math.BigInteger;
+import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -185,7 +192,7 @@ public class ProyectoSeguridadCliente {
     /**
      * Connects to the server then enters the processing loop.
      */
-    private void run() throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException {
+    private void run() throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException, InterruptedException {
 
         SecureRandom Aleatorio_a = new SecureRandom();
 
@@ -291,14 +298,16 @@ public class ProyectoSeguridadCliente {
                 } else if (line.startsWith("ENVIOLLAVE")) {
                     String[] us = line.split(" ");
                     String Llave_cliente = us[1];
-                    int Puerto = Integer.valueOf(us[2]);
-                    String IP_Remoto = us[3];
+                    String p = us[2].replaceAll("\n", "");
+                    int Puerto = Integer.valueOf(p);
+                    String IP_Remoto = "127.0.0.1";
                     int Flag = Integer.valueOf(us[4]);
-                    if(Flag == 1){
-                        Crear_socket();
-                    }
-                    else{
-                        Unirse_socket();
+                    if (Flag == 1) {
+                        Crear_socket(Puerto);
+                    } else {
+                        Thread.sleep(500);
+                        Unirse_socket(IP_Remoto, Puerto);
+
                     }
                 } else if (line.startsWith("REJECT")) {
                     JOptionPane.showMessageDialog(
@@ -430,13 +439,17 @@ public class ProyectoSeguridadCliente {
         SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
         return secretKeySpec;
     }
-    
-    public void Crear_socket(){
-        
+
+    public void Crear_socket(int port) {
+
+        ChatServer chat = new ChatServer(port);
+
     }
-    
-    public void Unirse_socket(){
-        
+
+    public void Unirse_socket(String server, int port) {
+
+        ChatClient chat = new ChatClient(server, port);
+
     }
 
     /**
@@ -448,4 +461,135 @@ public class ProyectoSeguridadCliente {
         client.frame.setVisible(true);
         client.run();
     }
+
+    public void conectarSocket(String server, int puerto) {
+
+        String serverName = server;
+        int port = puerto;
+        try {
+            System.out.println("Connecting to " + serverName
+                    + " on port " + port);
+            Socket client = new Socket(serverName, port);
+            System.out.println("Just connected to "
+                    + client.getRemoteSocketAddress());
+            OutputStream outToServer = client.getOutputStream();
+            DataOutputStream out = new DataOutputStream(outToServer);
+            out.writeUTF("Hello from "
+                    + client.getLocalSocketAddress());
+            InputStream inFromServer = client.getInputStream();
+            DataInputStream in
+                    = new DataInputStream(inFromServer);
+            System.out.println("Server says " + in.readUTF());
+            client.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public class ChatServer {
+
+        private Socket socket = null;
+        private ServerSocket server = null;
+        private DataInputStream streamIn = null;
+        private DataInputStream console = null;
+        private DataOutputStream streamOut = null;
+
+        public ChatServer(int port) {
+            try {
+                System.out.println("Binding to port " + port + ", please wait  ...");
+                server = new ServerSocket(port);
+                System.out.println("Server started: " + server);
+                System.out.println("Waiting for a client ...");
+                socket = server.accept();
+                System.out.println("Client accepted: " + socket);
+                open();
+                boolean done = false;
+                String line = "";
+                // start();
+                while (!done) {
+                    try {
+                        line = streamIn.readUTF();
+                        System.out.println(line);
+                        done = line.equals(".bye");
+                    } catch (IOException ioe) {
+                        done = true;
+                    }
+                }
+                close();
+            } catch (IOException ioe) {
+                System.out.println(ioe);
+            }
+        }
+
+        public void open() throws IOException {
+            streamIn = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+            streamOut = new DataOutputStream(socket.getOutputStream());
+        }
+
+        public void close() throws IOException {
+            if (socket != null) {
+                socket.close();
+            }
+            if (streamIn != null) {
+                streamIn.close();
+            }
+        }
+
+    }
+
+    public class ChatClient {
+
+        private Socket socket = null;
+        private DataInputStream console = null;
+        private DataOutputStream streamOut = null;
+        private DataInputStream streamIn = null;
+
+        public ChatClient(String serverName, int serverPort) {
+            System.out.println("Establishing connection. Please wait ...");
+            try {
+                socket = new Socket(serverName, serverPort);
+                System.out.println("Connected: " + socket);
+                start();
+            } catch (UnknownHostException uhe) {
+                System.out.println("Host unknown: " + uhe.getMessage());
+            } catch (IOException ioe) {
+                System.out.println("Unexpected exception: " + ioe.getMessage());
+            }
+            String line = "";
+            while (!line.equals(".bye")) {
+                try {
+                    line = console.readLine();
+                    streamOut.writeUTF(line);
+                    streamOut.flush();
+                } catch (IOException ioe) {
+                    System.out.println("Sending error: " + ioe.getMessage());
+                }
+            }
+        }
+
+        public void start() throws IOException {
+            console = new DataInputStream(System.in);
+            streamOut = new DataOutputStream(socket.getOutputStream());
+            streamIn = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+        }
+
+        public void stop() {
+            try {
+                if (console != null) {
+                    console.close();
+                }
+                if (streamOut != null) {
+                    streamOut.close();
+                }
+                if (socket != null) {
+                    socket.close();
+                }
+            } catch (IOException ioe) {
+                System.out.println("Error closing ...");
+            }
+        }
+
+    }
+
 }
