@@ -316,6 +316,7 @@ public class ProyectoSeguridadServidor {
                             out.println(EncriptarAES(("USUARIOSACTIVOS" + " " + userA).getBytes(), llave_compartida));
 
                         } else if (ingreso.startsWith("ACEPTO")) {
+                            int randomNum = 3000 + (int)(Math.random() * 50000); 
                             String[] sp = ingreso.split(" ");
                             System.out.println("USUARIO ACEPTADO");
                             String llaveClientes = "";
@@ -323,23 +324,26 @@ public class ProyectoSeguridadServidor {
                                 String key = entry.getKey();
                                 if (key.equals(name)) {
                                     System.out.println(name + " " + sp[1]);
-                                    String envio = "ENVIOLLAVE ";
+                                    String envio = "ENVIOLLAVE " + Calcular_Llave_Sesion_Cliente_Cliente(name, sp[1]);
                                     llaveClientes = EncriptarAES(envio.getBytes(), llave_compartida);
                                     PrintWriter w = entry.getValue();
-                                    w.println(llaveClientes);
+                                    w.print(llaveClientes);
+                                    w.print(EncriptarAES((" " + randomNum).getBytes(), llave_compartida));
+                                    w.println(EncriptarAES((" " + socket.getRemoteSocketAddress().toString() + " " + "1").getBytes(), llave_compartida));
                                     System.out.println("Enviando clave " + name);
 
                                 } else if (key.equals(sp[1])) {
-                                    String envio = "ENVIOLLAVE ";
+                                    String envio = "ENVIOLLAVE " + Calcular_Llave_Sesion_Cliente_Cliente(name, sp[1]);
                                     llaveClientes = EncriptarAES(envio.getBytes(), GenerarPass(usuarios.get(sp[1]).getClaveGeneradaServidor()));
                                     PrintWriter w = entry.getValue();
-                                    w.println(llaveClientes);
+                                    w.print(llaveClientes);
+                                    w.print(EncriptarAES((" " + randomNum).getBytes(), GenerarPass(usuarios.get(sp[1]).getClaveGeneradaServidor())));
+                                    w.println(EncriptarAES((" " + socket.getRemoteSocketAddress().toString() + " " + "2").getBytes(), GenerarPass(usuarios.get(sp[1]).getClaveGeneradaServidor())));
                                     System.out.println("Enviando clave " + sp[1]);
 
                                 }
 
                             }
-                            // SE DEBE AGREGAR LA FUNCION DE CREAR LAS DOS CLAVES ENTRE LOS DOS CLIENTES Y MANDAR A CADA UNO. 
                         } else {
                             out.println(EncriptarAES(("REJECT").getBytes(), llave_compartida));
                             socket.close();
@@ -505,8 +509,10 @@ public class ProyectoSeguridadServidor {
             String result = sb.toString();
             String Llave_comp = tiempo_string + result;
             Llave_comp = DigestUtils.sha256Hex(Llave_comp);
+            final int mid = Llave_comp.length() / 2; 
+             String[] parts = {Llave_comp.substring(0, mid),Llave_comp.substring(mid)};
 
-            return Llave_comp;
+            return parts[0];
         }
     }
 }

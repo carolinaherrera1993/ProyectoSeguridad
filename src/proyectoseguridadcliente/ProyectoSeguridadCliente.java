@@ -287,8 +287,18 @@ public class ProyectoSeguridadCliente {
                     } else if (dialogResult == JOptionPane.NO_OPTION) {
                         out.println(EncriptarAES("NOACEPTO".getBytes(), w));
                         System.out.println("no acepto");
-                    } else if (line.startsWith("ENVIOLLAVE")) {
-
+                    }
+                } else if (line.startsWith("ENVIOLLAVE")) {
+                    String[] us = line.split(" ");
+                    String Llave_cliente = us[1];
+                    int Puerto = Integer.valueOf(us[2]);
+                    String IP_Remoto = us[3];
+                    int Flag = Integer.valueOf(us[4]);
+                    if(Flag == 1){
+                        Crear_socket();
+                    }
+                    else{
+                        Unirse_socket();
                     }
                 } else if (line.startsWith("REJECT")) {
                     JOptionPane.showMessageDialog(
@@ -419,6 +429,14 @@ public class ProyectoSeguridadCliente {
         key = Arrays.copyOf(key, 16); // use only first 128 bit
         SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
         return secretKeySpec;
+    }
+    
+    public void Crear_socket(){
+        
+    }
+    
+    public void Unirse_socket(){
+        
     }
 
     /**
