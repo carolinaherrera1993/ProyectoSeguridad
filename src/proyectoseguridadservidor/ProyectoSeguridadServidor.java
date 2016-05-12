@@ -48,7 +48,7 @@ import sun.misc.BASE64Encoder;
 public class ProyectoSeguridadServidor {
 
     private static final int PORT = 9001;
-    private static HashMap<String, Usuario> usuarios;
+    private static HashMap<String, Usuario> usuarios; 
     public static final int gDF = 2;
     public static final int nConstant = 761;
 
@@ -79,6 +79,7 @@ public class ProyectoSeguridadServidor {
             }
         } finally {
             listener.close();
+            
         }
     }
 
@@ -313,7 +314,8 @@ public class ProyectoSeguridadServidor {
                             }
                             out.println("USUARIOSACTIVOS" + " " + userA);
 
-                        } else if (ingreso.equals("ACEPTO")) {
+                        } else if (ingreso.startsWith("ACEPTO")) {
+                            String []sp = ingreso.split(" "); 
                             System.out.println("USUARIO ACEPTADO");
                             Calcular_Llave_Sesion_Cliente_Cliente(name, usuarioSeleccionado);
 

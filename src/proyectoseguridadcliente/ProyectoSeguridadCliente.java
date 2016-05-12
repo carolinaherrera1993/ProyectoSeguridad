@@ -61,6 +61,7 @@ public class ProyectoSeguridadCliente {
     String clienteSeleccionado;
     String nombre = "";
     SecretKey w = null;
+    JButton listaButton;
 
     /**
      * Constructs the client by laying out the GUI and registering a listener
@@ -72,6 +73,27 @@ public class ProyectoSeguridadCliente {
     public ProyectoSeguridadCliente() {
 
         // Layout GUI
+        listaButton = new JButton("Lista");
+        listaButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String info = "LISTA";
+                try {
+                    out.println(EncriptarAES(info.getBytes(), w));
+                } catch (NoSuchAlgorithmException ex) {
+                    Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (NoSuchPaddingException ex) {
+                    Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InvalidKeyException ex) {
+                    Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IllegalBlockSizeException ex) {
+                    Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (BadPaddingException ex) {
+                    Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.security.InvalidKeyException ex) {
+                    Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
         usuariosActivos = new ArrayList<>();
         usuariosClientes.addElement("Seleccione el Cliente:");
         textField.setText("Ingrese el texto para enviar ");
@@ -82,6 +104,7 @@ public class ProyectoSeguridadCliente {
         frame.getContentPane().add(textField, "South");
         frame.getContentPane().add(new JScrollPane(messageArea), "Center");
         frame.getContentPane().add(clientesJCB, "North");
+        frame.getContentPane().add(listaButton, "East");
         clientesJCB.setSelectedIndex(0);
         frame.pack();
 
@@ -188,9 +211,19 @@ public class ProyectoSeguridadCliente {
             } else if (line.startsWith("SUBMITNAME")) {
                 numeroA = (int) ((pow(gDF, a)) % nConstant);
                 nombre = getName();
+                if (nombre==null || nombre.equals("")) {
+                    JOptionPane.showMessageDialog(
+                            frame, "Conexion Rechazada! No ingreso el usuario", "Screen reject", JOptionPane.ERROR_MESSAGE);
+                    frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+                }
                 frame.setTitle("Chat " + nombre);
                 out.println(nombre + " " + numeroA); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
                 pass = getPass();
+                if (pass==null || pass.equals("")) {
+                    JOptionPane.showMessageDialog(
+                            frame, "Conexion Rechazada! No ingreso la contrasena", "Screen reject", JOptionPane.ERROR_MESSAGE);
+                    frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+                }
             } else if (line.startsWith("SALTHASH")) {
                 String[] separarHash = line.split(" ");
                 salt = Integer.valueOf(separarHash[2]);
@@ -217,13 +250,12 @@ public class ProyectoSeguridadCliente {
                 System.out.println("clave cliente: " + compartido);
                 w = GenerarPass(compartido);
                 out.println(EncriptarAES("AUTENTICADO".getBytes(), w));
-                out.println(EncriptarAES("LISTA".getBytes(), w));
+                //out.println(EncriptarAES("LISTA".getBytes(), w));
             } else if (line.startsWith("NAMEACCEPTED")) {
                 textField.setEditable(true);
             } else if (line.startsWith("USUARIOSACTIVOS")) {
                 getUsuariosActivos(line, nombre);
                 clientesJCB.setEnabled(true);
-
             } else if (line.startsWith("MESSAGE")) {
                 messageArea.append(line.substring(8) + "\n");
             } else if (line.startsWith("REJECT")) {
@@ -234,7 +266,8 @@ public class ProyectoSeguridadCliente {
                 String[] us = line.split(" ");
                 int dialogResult = JOptionPane.showConfirmDialog(null, "Desea conectarse con " + us[1], "Warning", JOptionPane.YES_NO_OPTION);
                 if (dialogResult == JOptionPane.YES_OPTION) {
-                    out.println(EncriptarAES("ACEPTO".getBytes(), w));
+                    String acp = "ACEPTO " + us[1];
+                    out.println(EncriptarAES(acp.getBytes(), w));
                     System.out.println("acepto");
                 } else if (dialogResult == JOptionPane.NO_OPTION) {
                     out.println(EncriptarAES("NOACEPTO".getBytes(), w));
@@ -249,7 +282,9 @@ public class ProyectoSeguridadCliente {
         String[] usr = info.split(" ");
 
         for (int i = 2; i < usr.length; i++) {
-            if (!usuario.equals(usr[i])) {
+            if (usuario.equals(usr[i])) {
+
+            } else if (!usuariosActivos.contains(usr[i])) {
                 usuariosActivos.add(usr[i]);
                 usuariosClientes.addElement(usr[i]);
             }
