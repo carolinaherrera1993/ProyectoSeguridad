@@ -19,8 +19,11 @@ import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
@@ -312,6 +315,7 @@ public class ProyectoSeguridadServidor {
 
                         } else if (ingreso.equals("ACEPTO")) {
                             System.out.println("USUARIO ACEPTADO");
+                            Calcular_Llave_Sesion_Cliente_Cliente(name, usuarioSeleccionado);
 
                             // SE DEBE AGREGAR LA FUNCION DE CREAR LAS DOS CLAVES ENTRE LOS DOS CLIENTES Y MANDAR A CADA UNO. 
                         } else {
@@ -464,6 +468,23 @@ public class ProyectoSeguridadServidor {
             key = Arrays.copyOf(key, 16); // use only first 128 bit
             SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
             return secretKeySpec;
+        }
+        
+        public String Calcular_Llave_Sesion_Cliente_Cliente(String Nombre1, String Nombre2){
+            String Llave1 = usuarios.get(Nombre1).getClaveGeneradaServidor();
+            String Llave2 = usuarios.get("carol").getClaveGeneradaServidor();
+            Timestamp tiempo = Timestamp.valueOf(LocalDateTime.MIN);
+            String tiempo_string = tiempo.toString();
+            
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < Llave1.length(); i++) {
+                sb.append((char) (Llave1.charAt(i) ^ Llave2.charAt(i % Llave2.length())));
+            }
+            String result = sb.toString();
+            String Llave_comp = tiempo_string + result;
+            Llave_comp = DigestUtils.sha256Hex(Llave_comp);
+            
+            return result;
         }
     }
 }
