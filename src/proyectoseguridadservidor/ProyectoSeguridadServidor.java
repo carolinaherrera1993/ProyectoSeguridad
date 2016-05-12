@@ -59,7 +59,7 @@ public class ProyectoSeguridadServidor {
      * The set of all the print writers for all the clients. This set is kept so
      * we can easily broadcast messages.
      */
-    private static HashSet<PrintWriter> writers = new HashSet<PrintWriter>();
+    private static HashMap<String, PrintWriter> writers = new HashMap<String, PrintWriter>();
 
     /**
      * The application main method, which just listens on a port and spawns
@@ -92,8 +92,7 @@ public class ProyectoSeguridadServidor {
 
             while ((sCurrentLine = br.readLine()) != null) {
                 usuarioArray = sCurrentLine.split(",");
-                usuarios.put(usuarioArray[0], new Usuario(usuarioArray[0], Integer.valueOf(usuarioArray[1]), usuarioArray[2]));
-
+                usuarios.put(usuarioArray[0], new Usuario(usuarioArray[0], Integer.valueOf(usuarioArray[1]), usuarioArray[2], "Inactivo", "", ""));
             }
 
         } catch (IOException e) {
@@ -263,10 +262,14 @@ public class ProyectoSeguridadServidor {
 
                     }
                 }
+
+                out.println("NAMEACCEPTED");
+                writers.put(name, out);
+
                 String userA = "";
                 for (Usuario value : usuarios.values()) {
                     if (value.getActivo().equals("Activo")) {
-                        userA+=" " + value.getNombreUsuario(); 
+                        userA += " " + value.getNombreUsuario();
                     }
                 }
 
@@ -274,18 +277,26 @@ public class ProyectoSeguridadServidor {
 
                 // Accept messages from this client and broadcast them.
                 // Ignore other clients that cannot be broadcasted to.
+                String usuarioSeleccionado = "";
                 while (true) {
-
                     String ingreso = in.readLine();
                     if (ingreso == null) {
                         return;
                     } else {
 
                         String[] texto = ingreso.split(" ");
-                        int N_obtenida = Integer.valueOf(texto[0]);
+                        usuarioSeleccionado = texto[2];
+                        if (usuarios.containsKey(usuarioSeleccionado)) {
+                            System.out.println("Usuario Correcto");
+                            for (HashMap.Entry<String, PrintWriter> entry : writers.entrySet()) {
+                                String key = entry.getKey();
+                                if (key.equals(usuarioSeleccionado)) {
+                                    PrintWriter w = entry.getValue();
+                                    w.println("CONEXION " + usuarioSeleccionado);
 
-                        if (N_obtenida == Puzzle_N) {
-                            System.out.println("N Correcto");
+                                }
+                                // do something with key and/or tab
+                            }
                             break;
                         } else {
                             out.println("REJECT");
@@ -294,15 +305,13 @@ public class ProyectoSeguridadServidor {
 
                     }
                 }
-                // Now that a successful name has been chosen, add the
-                // socket's print writer to the set of all writers so
-                // this client can receive broadcast messages.
-                out.println("NAMEACCEPTED");
-                writers.add(out);
 
-                // Accept messages from this client and broadcast them.
-                // Ignore other clients that cannot be broadcasted to.
-                while (true) {
+                /* for (PrintWriter writer : writers.values()) {
+                    if (writer.equals(usuarioSeleccionado)) {
+                        writer.println();
+                    }
+                }*/
+ /* while (true) {
                     String input = in.readLine();
                     if (input == null) {
                         return;
@@ -310,7 +319,7 @@ public class ProyectoSeguridadServidor {
                     for (PrintWriter writer : writers) {
                         writer.println("MESSAGE " + name + ": " + input);
                     }
-                }
+                }*/
             } catch (IOException e) {
                 System.out.println(e);
             } catch (Exception ex) {

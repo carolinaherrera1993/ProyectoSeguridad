@@ -18,6 +18,9 @@ import java.net.Socket;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Random;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -39,6 +42,10 @@ public class ProyectoSeguridadCliente {
     public static final int gDF = 2;
     public static final int nConstant = 761;
     ArrayList<String> usuariosActivos;
+    JComboBox clientesJCB;
+    DefaultComboBoxModel usuariosClientes = new DefaultComboBoxModel();
+    String clienteSeleccionado;
+    String nombre = "";
 
     /**
      * Constructs the client by laying out the GUI and registering a listener
@@ -51,11 +58,29 @@ public class ProyectoSeguridadCliente {
 
         // Layout GUI
         usuariosActivos = new ArrayList<>();
+        usuariosClientes.addElement("Seleccione el Cliente:");
+        textField.setText("Ingrese el texto para enviar ");
+        clientesJCB = new JComboBox(usuariosClientes);
         textField.setEditable(false);
         messageArea.setEditable(false);
-        frame.getContentPane().add(textField, "North");
+        clientesJCB.setEnabled(false);
+        frame.getContentPane().add(textField, "South");
         frame.getContentPane().add(new JScrollPane(messageArea), "Center");
+        frame.getContentPane().add(clientesJCB, "North");
+        clientesJCB.setSelectedIndex(0);
         frame.pack();
+
+        clientesJCB.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                JComboBox<String> combo = (JComboBox<String>) event.getSource();
+                clienteSeleccionado = (String) combo.getSelectedItem();
+
+                System.out.println("Cliente seleccionado: " + clienteSeleccionado);
+                out.println("TALKTO" + " " + nombre + " " + clienteSeleccionado);
+            }
+        });
 
         // Add Listeners
         textField.addActionListener(new ActionListener() {
@@ -109,6 +134,7 @@ public class ProyectoSeguridadCliente {
     private void run() throws IOException {
 
         SecureRandom Aleatorio_a = new SecureRandom();
+        
         // Make connection and initialize streams
         String serverAddress = "localhost";
         Socket socket = new Socket(serverAddress, 9001);
@@ -130,7 +156,8 @@ public class ProyectoSeguridadCliente {
                 return;
             } else if (line.startsWith("SUBMITNAME")) {
                 numeroA = (int) ((pow(gDF, a)) % nConstant);
-                out.println(getName() + " " + numeroA); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
+                nombre = getName();
+                out.println(nombre + " " + numeroA); //TODO:Hay que modificar esta linea, poner el valor real de G y hacer elevado.
                 pass = getPass();
             } else if (line.startsWith("SALTHASH")) {
                 String[] separarHash = line.split(" ");
@@ -160,23 +187,38 @@ public class ProyectoSeguridadCliente {
             } else if (line.startsWith("NAMEACCEPTED")) {
                 textField.setEditable(true);
             } else if (line.startsWith("USUARIOSACTIVOS")) {
-                getUsuariosActivos(line);
+                getUsuariosActivos(line, nombre);
+                clientesJCB.setEnabled(true);
+                
+               
             } else if (line.startsWith("MESSAGE")) {
                 messageArea.append(line.substring(8) + "\n");
             } else if (line.startsWith("REJECT")) {
                 JOptionPane.showMessageDialog(
                         frame, "Conexion Rechazada!", "Screen reject", JOptionPane.ERROR_MESSAGE);
                 frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+            } else if (line.startsWith("CONEXION ")) {
+                String [] us= line.split(" "); 
+                int dialogResult = JOptionPane.showConfirmDialog(null, "Desea conectarse con " + us[1], "Warning",JOptionPane.YES_NO_OPTION);
+                if (dialogResult == JOptionPane.YES_OPTION) {
+                    System.out.println("acepto");
+                } else if (dialogResult == JOptionPane.NO_OPTION) {
+                    System.out.println("no acepto");
+                }
             }
         }
     }
 
-    public void getUsuariosActivos(String info) {
+    public void getUsuariosActivos(String info, String usuario) {
 
         String[] usr = info.split(" ");
 
-        for (int i = 1; i < usr.length; i++) {
-            usuariosActivos.add(usr[i]);
+        for (int i = 2; i < usr.length; i++) {
+            if (usr[i] != usuario) {
+                usuariosActivos.add(usr[i]);
+                usuariosClientes.addElement(usr[i]);
+            }
+
         }
 
     }
@@ -242,7 +284,7 @@ public class ProyectoSeguridadCliente {
         String salt = String.valueOf(sal);
         String Hash = DigestUtils.sha256Hex(salt + pass);
         int x = Math.abs(hex2decimal(Hash) % 1000);
-        System.out.println("x: " +x);
+        System.out.println("x: " + x);
         return x;
     }
 

@@ -73,6 +73,15 @@ public class Usuario {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public Usuario(String nombreUsuario, Integer salt, String password, String activo, String ip, String claveGeneradaServidor) {
+        this.nombreUsuario = nombreUsuario;
+        this.salt = salt;
+        this.password = password;
+        this.activo = activo;
+        this.ip = ip;
+        this.claveGeneradaServidor = claveGeneradaServidor;
+    }
     
     
     
