@@ -303,10 +303,10 @@ public class ProyectoSeguridadCliente {
                     String IP_Remoto = "127.0.0.1";
                     int Flag = Integer.valueOf(us[4]);
                     if (Flag == 1) {
-                        Crear_socket(Puerto);
+                        Crear_socket(Puerto, GenerarPass(Llave_cliente), nombre);
                     } else {
                         Thread.sleep(500);
-                        Unirse_socket(IP_Remoto, Puerto);
+                        Unirse_socket(IP_Remoto, Puerto, GenerarPass(Llave_cliente), nombre);
 
                     }
                 } else if (line.startsWith("REJECT")) {
@@ -440,15 +440,14 @@ public class ProyectoSeguridadCliente {
         return secretKeySpec;
     }
 
-    public void Crear_socket(int port) {
-
-        ChatServer chat = new ChatServer(port);
+    public void Crear_socket(int port, SecretKey Key, String usu) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException {
+        ChatServer chat = new ChatServer(port, Key, usu);
 
     }
 
-    public void Unirse_socket(String server, int port) {
+    public void Unirse_socket(String server, int port, SecretKey Key, String usu) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException {
 
-        ChatClient chat = new ChatClient(server, port);
+        ChatClient chat = new ChatClient(server, port, Key, usu);
 
     }
 
@@ -462,31 +461,6 @@ public class ProyectoSeguridadCliente {
         client.run();
     }
 
-    public void conectarSocket(String server, int puerto) {
-
-        String serverName = server;
-        int port = puerto;
-        try {
-            System.out.println("Connecting to " + serverName
-                    + " on port " + port);
-            Socket client = new Socket(serverName, port);
-            System.out.println("Just connected to "
-                    + client.getRemoteSocketAddress());
-            OutputStream outToServer = client.getOutputStream();
-            DataOutputStream out = new DataOutputStream(outToServer);
-            out.writeUTF("Hello from "
-                    + client.getLocalSocketAddress());
-            InputStream inFromServer = client.getInputStream();
-            DataInputStream in
-                    = new DataInputStream(inFromServer);
-            System.out.println("Server says " + in.readUTF());
-            client.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
     public class ChatServer {
 
         private Socket socket = null;
@@ -494,8 +468,12 @@ public class ProyectoSeguridadCliente {
         private DataInputStream streamIn = null;
         private DataInputStream console = null;
         private DataOutputStream streamOut = null;
+        private SecretKey llave;
+        private String usuarioCliente;
 
-        public ChatServer(int port) {
+        public ChatServer(int port, SecretKey key, String usu) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException {
+            llave = key;
+            usuarioCliente = usu;
             try {
                 System.out.println("Binding to port " + port + ", please wait  ...");
                 server = new ServerSocket(port);
@@ -506,25 +484,68 @@ public class ProyectoSeguridadCliente {
                 open();
                 boolean done = false;
                 String line = "";
-                // start();
-                while (!done) {
-                    try {
-                        line = streamIn.readUTF();
-                        System.out.println(line);
-                        done = line.equals(".bye");
-                    } catch (IOException ioe) {
-                        done = true;
+                Thread t = new Thread(new Runnable() {
+                    public void run() {
+                        try {
+                            recieveMessage();
+                        } catch (NoSuchAlgorithmException ex) {
+                            Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (InvalidKeyException ex) {
+                            Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (NoSuchPaddingException ex) {
+                            Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IllegalBlockSizeException ex) {
+                            Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (BadPaddingException ex) {
+                            Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (java.security.InvalidKeyException ex) {
+                            Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
+                });
+                t.start();
+                while (true) {
+                    sendMessage();
                 }
-                close();
+
+                // close();
             } catch (IOException ioe) {
                 System.out.println(ioe);
             }
         }
 
+        public void sendMessage() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException {
+            String line = "";
+            try {
+                System.out.print(" >>");
+                line = console.readLine();
+                streamOut.writeUTF(EncriptarAES(line.getBytes(), llave));
+                streamOut.flush();
+            } catch (IOException ioe) {
+                System.out.println("Sending error: " + ioe.getMessage());
+            }
+        }
+
+        public void recieveMessage() throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException {
+            boolean done = false;
+            String line = "";
+            while (!done) {
+                try {
+                    System.out.print("// ");
+                    line = streamIn.readUTF();
+                    System.out.println(new String(DecryptAES(line, llave)));
+                    done = line.equals(".bye");
+                } catch (IOException ioe) {
+                    done = true;
+                }
+            }
+        }
+
         public void open() throws IOException {
+
             streamIn = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             streamOut = new DataOutputStream(socket.getOutputStream());
+            console = new DataInputStream(System.in);
         }
 
         public void close() throws IOException {
@@ -544,26 +565,73 @@ public class ProyectoSeguridadCliente {
         private DataInputStream console = null;
         private DataOutputStream streamOut = null;
         private DataInputStream streamIn = null;
+        private SecretKey llave;
+        private String usuarioServidor;
 
-        public ChatClient(String serverName, int serverPort) {
+        public ChatClient(String serverName, int serverPort, SecretKey key, String usu) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException {
+            llave = key;
+            usuarioServidor = usu;
             System.out.println("Establishing connection. Please wait ...");
             try {
                 socket = new Socket(serverName, serverPort);
                 System.out.println("Connected: " + socket);
                 start();
+
+                Thread t = new Thread(new Runnable() {
+                    public void run() {
+                        try {
+                            recieveMessage();
+                        } catch (NoSuchAlgorithmException ex) {
+                            Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (InvalidKeyException ex) {
+                            Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (NoSuchPaddingException ex) {
+                            Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IllegalBlockSizeException ex) {
+                            Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (BadPaddingException ex) {
+                            Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (java.security.InvalidKeyException ex) {
+                            Logger.getLogger(ProyectoSeguridadCliente.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                });
+                t.start();
+                while (true) {
+                    sendMessage();
+
+                }
             } catch (UnknownHostException uhe) {
                 System.out.println("Host unknown: " + uhe.getMessage());
             } catch (IOException ioe) {
                 System.out.println("Unexpected exception: " + ioe.getMessage());
             }
+
+        }
+
+        public void sendMessage() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException {
             String line = "";
-            while (!line.equals(".bye")) {
+            try {
+                System.out.print(">>");
+                line = console.readLine();
+                streamOut.writeUTF(EncriptarAES(line.getBytes(), llave));
+                streamOut.flush();
+            } catch (IOException ioe) {
+                System.out.println("Sending error: " + ioe.getMessage());
+            }
+        }
+
+        public void recieveMessage() throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, java.security.InvalidKeyException {
+            boolean done = false;
+            String line = "";
+            while (!done) {
                 try {
-                    line = console.readLine();
-                    streamOut.writeUTF(line);
-                    streamOut.flush();
+                    System.out.print("//");
+                    line = streamIn.readUTF();
+                    System.out.println(new String(DecryptAES(line, llave)));
+                    done = line.equals(".bye");
                 } catch (IOException ioe) {
-                    System.out.println("Sending error: " + ioe.getMessage());
+                    done = true;
                 }
             }
         }

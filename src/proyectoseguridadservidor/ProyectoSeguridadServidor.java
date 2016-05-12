@@ -301,6 +301,8 @@ public class ProyectoSeguridadServidor {
                                 }
                             } else {
                                 out.println(EncriptarAES(("REJECT").getBytes(), llave_compartida));
+                                usuarios.get(name).setActivo("");
+                                usuarios.get(name).setClaveGeneradaServidor("");
                                 socket.close();
                                 break;
                             }
@@ -316,7 +318,7 @@ public class ProyectoSeguridadServidor {
                             out.println(EncriptarAES(("USUARIOSACTIVOS" + " " + userA).getBytes(), llave_compartida));
 
                         } else if (ingreso.startsWith("ACEPTO")) {
-                            int randomNum = 3000 + (int)(Math.random() * 50000); 
+                            int randomNum = 3000 + (int) (Math.random() * 50000);
                             String[] sp = ingreso.split(" ");
                             System.out.println("USUARIO ACEPTADO");
                             String llaveClientes = "";
@@ -346,6 +348,8 @@ public class ProyectoSeguridadServidor {
                             }
                         } else {
                             out.println(EncriptarAES(("REJECT").getBytes(), llave_compartida));
+                            usuarios.get(name).setActivo("");
+                            usuarios.get(name).setClaveGeneradaServidor("");
                             socket.close();
                             break;
                         }
@@ -353,7 +357,7 @@ public class ProyectoSeguridadServidor {
 
                 }
 
-                out.println("NAMEACCEPTED");
+               /* out.println("NAMEACCEPTED");
 
                 while (true) {
                     String input = in.readLine();
@@ -363,7 +367,7 @@ public class ProyectoSeguridadServidor {
                     for (PrintWriter writer : writers.values()) {
                         writer.println("MESSAGE " + name + ": " + input);
                     }
-                }
+                }*/
             } catch (IOException e) {
                 System.out.println(e);
             } catch (Exception ex) {
@@ -509,8 +513,8 @@ public class ProyectoSeguridadServidor {
             String result = sb.toString();
             String Llave_comp = tiempo_string + result;
             Llave_comp = DigestUtils.sha256Hex(Llave_comp);
-            final int mid = Llave_comp.length() / 2; 
-             String[] parts = {Llave_comp.substring(0, mid),Llave_comp.substring(mid)};
+            final int mid = Llave_comp.length() / 2;
+            String[] parts = {Llave_comp.substring(0, mid), Llave_comp.substring(mid)};
 
             return parts[0];
         }
